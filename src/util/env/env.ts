@@ -13,9 +13,23 @@ import colors from 'colors';
 export default function env<T>(
   key: string,
   defaultValue?: T,
-  level: string | null = null,
-  start = true,
+  options: {
+    up?: string;
+    down?: string;
+    regex?: string;
+    comment?: string;
+  } = {},
 ): T {
+  options.regex ??= Array.isArray(defaultValue)
+    ? '^([a-zA-Z0-9]+,?)+$'
+    : typeof defaultValue === 'string'
+      ? '^[a-zA-Z0-9]+$'
+      : typeof defaultValue === 'number'
+        ? '^\\d+$'
+        : typeof defaultValue === 'boolean'
+          ? '^true|false$'
+          : '';
+
   key = key.toSnakeCase().toUpperCase();
   let value: any = process.env[key];
 
@@ -37,13 +51,13 @@ export default function env<T>(
       if (!keyRegex.test(envData))
         fs.appendFileSync(
           envPath,
-          `${level && start ? `# ${level}\n` : ''}${key} = "${defaultValue}"${level && !start ? `\n# ${level}\n\n` : ''}\n`,
+          `${options?.up ? `#${options?.up} \n` : ''}${key} = "${defaultValue}" ${options?.regex ? `# ${options?.comment ? `${options?.comment} --> ` : ''}type: ${getType(defaultValue)}, regex: (/${options?.regex}/)\n` : ''}${options?.down ? `#${options?.down} \n\n\n` : ''}`,
           'utf8',
         );
     } else
       fs.writeFileSync(
         envPath,
-        `${level ? `# ${level}\n` : ''}${key} = "${defaultValue}"\n`,
+        `${options?.up ? `#${options?.up} \n` : ''}${key} = "${defaultValue}" ${options?.regex ? `# ${options?.comment ? `${options?.comment} --> ` : ''}type: ${getType(defaultValue)}, regex: (/${options?.regex}/)\n` : ''}${options?.down ? `#${options?.down} \n\n\n` : ''}`,
         'utf8',
       );
 
@@ -70,4 +84,12 @@ export default function env<T>(
     return value!.split(',').map((item: string) => item.trim()) as T;
 
   return (value ?? defaultValue) as T;
+}
+
+function getType(value: any) {
+  if (Array.isArray(value)) return 'array';
+  else if (typeof value === 'string') return 'string';
+  else if (typeof value === 'number') return 'number';
+  else if (typeof value === 'boolean') return 'boolean';
+  else return 'unknown';
 }

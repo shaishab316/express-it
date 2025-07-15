@@ -29,101 +29,166 @@ const support_email =
  */
 const config = {
   server: {
-    node_env: env<string>('node env', node_env, 'Server info - start'),
-    allowed_origins: env('allowed origins', ['*']),
-    ip_address: env('ip address', getIpAddress()),
-    port: env('port', Math.floor(Math.random() * 1_000) + 3_000),
-    developer: env('developer', 'Shaishab Chandra Shil'),
-    name: env('server name', server_name),
+    node_env: env<string>('node env', node_env, {
+      up: 'Server info - start',
+      regex: '^(development|production)$',
+    }),
+    allowed_origins: env('allowed origins', ['*'], {
+      regex: '^\\*$|^(https?://[^,\\s]+)(,https?://[^,\\s]+)*',
+    }),
+    ip_address: env('ip address', getIpAddress(), {
+      regex: '^(\\d{1,3}\\.){3}\\d{1,3}$',
+    }),
+    port: env('port', Math.floor(Math.random() * 1_000) + 3_000, {
+      regex: '^\\d{4,5}$',
+    }),
+    developer: env('developer', 'Shaishab Chandra Shil', {
+      regex: '^.{2,100}$',
+      comment: "!Don't change this",
+    }),
+    name: env('server name', server_name, {
+      regex: '^\\w[\\w\\s-]{1,50}$',
+    }),
     isDevelopment: node_env !== 'production',
-    logo: env('logo', '/images/logo.png'),
-    default_avatar: env('default avatar', '/images/placeholder.png'),
-    mock_mail: env('mock mail', true, 'Server info - end', false),
+    logo: env('logo', '/images/logo.png', {
+      regex: '^\\/.*\\.(png|jpg|jpeg|svg)$',
+    }),
+    default_avatar: env('default avatar', '/images/placeholder.png', {
+      regex: '^\\/.*\\.(png|jpg|jpeg|svg)$',
+    }),
+    mock_mail: env('mock mail', true, {
+      regex: '^(true|false)$',
+      down: 'Server info - end',
+    }),
   },
 
   url: {
     database: env(
       'database url',
       `mongodb://127.0.0.1:27017/${server_name.toLowerCase().replace(' ', '-')}`,
-      'Url info - start',
+      {
+        up: 'Database info - start',
+        regex: '^mongodb:\\/\\/.*$',
+      },
     ),
-    // redis: env('redis url', 'redis://redis:6379'),
-    // payment: {
-    //   success: env('payment success url', `/payment/success`),
-    //   cancel: env('payment cancel url', `/payment/cancel`),
-    // },
-    api_doc: env('api doc', ''),
-    ui: env('ui url', '', 'Url info - end', false),
+    api_doc: env('api doc', '', {
+      regex: '^https?:\\/\\/.*$|^$',
+    }),
+    ui: env('ui url', '', {
+      regex: '^https?:\\/\\/.*$|^$',
+      down: 'Database info - end',
+    }),
   },
 
-  bcrypt_salt_rounds: env('bcrypt salt rounds', 10, 'Authentication - start'),
+  bcrypt_salt_rounds: env('bcrypt salt rounds', 10, {
+    up: 'Authentication - start',
+    regex: '^\\d+$',
+  }),
+
   otp: {
-    length: env('otp length', 6),
-    exp: env<ms.StringValue>('otp expire in', '10m'),
-    limit: env('otp limit', 2),
-    window: env<ms.StringValue>('otp window', '10s'),
+    length: env('otp length', 6, {
+      regex: '^\\d{1,2}$',
+    }),
+    exp: env<ms.StringValue>('otp expire in', '10m', {
+      regex: '^\\d+[smhd]$',
+    }),
+    limit: env('otp limit', 2, {
+      regex: '^\\d+$',
+    }),
+    window: env<ms.StringValue>('otp window', '10s', {
+      regex: '^\\d+[smhd]$',
+    }),
   },
+
   jwt: {
     access_token: {
-      secret: env('jwt access secret', genSecret()),
-      expire_in: env<ms.StringValue>('jwt access expire in', '1d'),
+      secret: env('jwt access secret', genSecret(), {
+        regex: '^.{10,}$',
+      }),
+      expire_in: env<ms.StringValue>('jwt access expire in', '1d', {
+        regex: '^\\d+[smhd]$',
+      }),
     },
     refresh_token: {
-      secret: env('jwt refresh secret', genSecret()),
-      expire_in: env<ms.StringValue>('jwt refresh expire in', '30d'),
+      secret: env('jwt refresh secret', genSecret(), {
+        regex: '^.{10,}$',
+      }),
+      expire_in: env<ms.StringValue>('jwt refresh expire in', '30d', {
+        regex: '^\\d+[smhd]$',
+      }),
     },
     reset_token: {
-      secret: env('jwt reset secret', genSecret()),
-      expire_in: env<ms.StringValue>(
-        'jwt reset expire in',
-        '10m',
-        'Authentication - end',
-        false,
-      ),
+      secret: env('jwt reset secret', genSecret(), {
+        regex: '^.{10,}$',
+      }),
+      expire_in: env<ms.StringValue>('jwt reset expire in', '10m', {
+        regex: '^\\d+[smhd]$',
+        down: 'Authentication - end',
+      }),
     },
+  },
+
+  email: {
+    user: env('email user', user_email, {
+      up: 'Email credentials - start',
+      regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
+    }),
+    from: `${server_name} <${user_email}>`,
+    port: env('email port', 587, {
+      regex: '^\\d{2,5}$',
+    }),
+    host: env('email host', 'smtp.gmail.com', {
+      regex: '^[\\w.-]+\\.[a-z]{2,}$',
+    }),
+    pass: env('email pass', genSecret(4), {
+      regex: '^.{4,}$',
+    }),
+    support: env('support email', support_email, {
+      regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
+      down: 'Email credentials - end',
+    }),
+  },
+
+  admin: {
+    name: env('admin name', 'Mr. Admin', {
+      up: 'Admin info - start',
+      regex: '^.{2,100}$',
+    }),
+    email: env('admin email', admin_email, {
+      regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
+    }),
+    password: env('admin password', genSecret(4), {
+      regex: '^.{6,32}$',
+      down: 'Admin info - end',
+    }),
   },
 
   // payment: {
   //   stripe: {
-  //     secret: env(
-  //       'stripe secret',
-  //       `sk_${genSecret(16)}`,
-  //       'Payment credentials - start',
-  //     ),
-  //     webhook: env('stripe webhook secret', `whsec_${genSecret(16)}`),
+  //     secret: env('stripe secret', `sk_${genSecret(16)}`, {
+  //       up: 'Payment credentials - start',
+  //       regex: '^sk_\\w+$',
+  //     }),
+  //     webhook: env('stripe webhook secret', `whsec_${genSecret(16)}`, {
+  //       regex: '^whsec_\\w+$',
+  //     }),
   //   },
-  //   methods: env<[string, ...string[]]>('payment methods', ['card']),
-  //   default_method: env(
-  //     'default payment method',
-  //     'card',
-  //     'Payment credentials - end',
-  //     false,
-  //   ),
+  //   methods: env<[string, ...string[]]>('payment methods', ['card'], {
+  //     regex: '^card$|...|^google_pay$',
+  //   }),
+  //   default_method: env('default payment method', 'card', {
+  //     regex: '^card$',
+  //     down: 'Payment credentials - end',
+  //   }),
   // },
-
-  email: {
-    user: env('email user', user_email, 'Email credentials - start'),
-    from: `${server_name} <${user_email}>`,
-    port: env('email port', 587),
-    host: env('email host', 'smtp.gmail.com'),
-    pass: env('email pass', genSecret(4)),
-    support: env(
-      'support email',
-      support_email,
-      'Email credentials - end',
-      false,
-    ),
-  },
-
-  admin: {
-    name: env('admin name', 'Mr. Admin', 'Admin info - start'),
-    email: env('admin email', admin_email),
-    password: env('admin password', genSecret(4), 'Admin info - end', false),
-  },
 
   // ai: {
   //   gemini: {
-  //     key: env('gemini key', genSecret(16), 'AI credentials - start'),
+  //     key: env('gemini key', genSecret(16), {
+  //       up: 'AI credentials - start',
+  //       regex: '^.{16,}$',
+  //       down: 'AI credentials - end',
+  //     }),
   //   },
   // },
 };
