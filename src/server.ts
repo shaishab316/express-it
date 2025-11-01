@@ -1,8 +1,23 @@
-import './util/prototype'; //! must be first
-import startServer from './util/server/startServer';
+import startServer from './utils/server/startServer';
 
 startServer();
-/** Do microservices */
-// .then(server => {
-//   ChatServices.socket(server);
-// });
+
+/*
+ ! Do microservices here
+
+.then(server => {
+  //? add server plugins
+
+  //? socket plugins
+  const socketCleanup = SocketServices.init(server);
+
+  //? cleanup on process close
+  ['SIGINT', 'SIGTERM'].forEach(signal =>
+    process.once(signal, async () => {
+      socketCleanup();
+
+      server.close(() => process.exit(0));
+    }),
+  );
+});
+ */

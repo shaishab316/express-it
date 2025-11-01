@@ -1,69 +1,79 @@
 import { Router } from 'express';
 import { AuthControllers } from './Auth.controller';
 import { AuthValidations } from './Auth.validation';
-import auth from '../../middlewares/auth';
 import { UserControllers } from '../user/User.controller';
 import { UserValidations } from '../user/User.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
-import capture from '../../middlewares/capture';
-import { UserMiddlewares } from '../user/User.middleware';
-import { OtpValidations } from '../otp/Otp.validation';
-import { OtpControllers } from '../otp/Otp.controller';
-import { otpLimiter } from '../otp/Otp.utils';
+import auth from '../../middlewares/auth';
+import {
+  otpVerifyRateLimiter,
+  forgotPasswordRateLimiter,
+  loginRateLimiter,
+  registerRateLimiter,
+} from './Auth.utils';
 
-const router = Router();
+const free = Router();
 
-router.post(
+free.post(
   '/register',
-  capture({ avatar: { maxCount: 1, size: 5 * 1024 * 1024 } }),
-  purifyRequest(UserValidations.create, UserValidations.edit),
-  UserControllers.create,
+  registerRateLimiter,
+  purifyRequest(UserValidations.userRegister),
+  UserControllers.register,
 );
 
-router.post(
+free.post(
+  '/account-verify',
+  otpVerifyRateLimiter,
+  purifyRequest(AuthValidations.accountVerify),
+  AuthControllers.accountVerify,
+);
+
+free.post(
   '/login',
+  loginRateLimiter,
   purifyRequest(AuthValidations.login),
-  UserMiddlewares.useUser(),
   AuthControllers.login,
 );
 
-router.post('/logout', AuthControllers.logout);
+free.post(
+  '/account-verify/otp-send',
+  purifyRequest(AuthValidations.otpSend),
+  AuthControllers.accountVerifyOtpSend,
+);
 
-router.post(
+free.post(
+  '/forgot-password',
+  forgotPasswordRateLimiter,
+  purifyRequest(AuthValidations.otpSend),
+  AuthControllers.forgotPassword,
+);
+
+free.post(
+  '/forgot-password/otp-verify',
+  otpVerifyRateLimiter,
+  purifyRequest(AuthValidations.accountVerify),
+  AuthControllers.forgotPasswordOtpVerify,
+);
+
+free.post(
   '/reset-password',
-  auth.reset(),
+  auth.reset_token,
   purifyRequest(AuthValidations.resetPassword),
   AuthControllers.resetPassword,
 );
 
+free.get('/logout', AuthControllers.logout);
+
 /**
  * generate new access token
  */
-router.get('/refresh-token', auth.refresh(), AuthControllers.refreshToken);
+free.get('/refresh-token', auth.refresh_token, AuthControllers.refreshToken);
 
-/* Otps */
-router.post(
-  '/reset-password-otp-send',
-  otpLimiter,
-  purifyRequest(OtpValidations.send),
-  UserMiddlewares.useUser(),
-  OtpControllers.resetPasswordOtpSend,
-);
-
-router.post(
-  '/reset-password-otp-verify',
-  otpLimiter,
-  purifyRequest(OtpValidations.verify),
-  UserMiddlewares.useUser(),
-  OtpControllers.resetPasswordOtpVerify,
-);
-
-router.post(
-  '/account-verify',
-  otpLimiter,
-  purifyRequest(OtpValidations.verify),
-  UserMiddlewares.useUser(),
-  AuthControllers.verifyAccount,
-);
-
-export const AuthRoutes = router;
+export const AuthRoutes = {
+  /**
+   * Everyone can access
+   *
+   * @url : (base_url)/auth/
+   */
+  free,
+};

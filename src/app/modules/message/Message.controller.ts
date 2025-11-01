@@ -1,19 +1,30 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
 import { MessageServices } from './Message.service';
 
+/**
+ * All message related controllers
+ */
 export const MessageControllers = {
-  list: catchAsync(async ({ query, params, user }, res) => {
-    const { messages, meta } = await MessageServices.list({
-      ...query,
-      chat: params.chatId,
-      user: user._id,
-    });
+  /**
+   * Get chat messages
+   */
+  getChatMessages: catchAsync(async ({ query }) => {
+    const { messages, meta } = await MessageServices.getChatMessages(query);
 
-    serveResponse(res, {
+    return {
       message: 'Messages retrieved successfully!',
       meta,
-      data: messages,
-    });
+      data: messages.reverse(),
+    };
+  }),
+
+  /**
+   * Upload media
+   */
+  uploadMedia: catchAsync(async ({ body }) => {
+    return {
+      message: 'Media uploaded successfully!',
+      data: body,
+    };
   }),
 };

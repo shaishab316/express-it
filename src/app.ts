@@ -1,13 +1,12 @@
 import cors from 'cors';
 import express from 'express';
-import { StatusCodes } from 'http-status-codes';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import RoutesV1 from './routes/v1';
-import { Morgan } from './util/logger/morgen';
+import { Morgan } from './utils/logger/morgen';
 import cookieParser from 'cookie-parser';
-import ServerError from './errors/ServerError';
 import config from './config';
-import { imageRetriever } from './app/middlewares/capture';
+import { notFoundError } from './errors';
+import serveResponse from './utils/server/serveResponse';
 
 /**
  * The main application instance
@@ -19,7 +18,9 @@ const app = express();
 
 // Serve static files
 app.use(express.static('public'));
-app.get('/images/:filename', imageRetriever);
+app.use(express.static('uploads'));
+app.use(/^\/api\/v\d+/, express.static('public'));
+app.use(/^\/api\/v\d+/, express.static('uploads'));
 
 // Configure middleware
 app.use(
@@ -41,12 +42,20 @@ app.use(
   cookieParser(),
 );
 
-// Health check endpoint
 app.get('/', (_, res) => {
-  res.send(`
-    ${config.server.name} is running successfully.
-    Please check the <a href="${config.url.api_doc}">documentation</a> for more details.
-  `);
+  res.redirect('/health');
+});
+
+// Health check
+app.get('/health', (_, res) => {
+  serveResponse(res, {
+    message: 'Server is healthy!',
+    meta: {
+      timestamp: new Date(),
+      version: process.env.npm_package_version,
+      env: process.env.NODE_ENV,
+    },
+  });
 });
 
 // API routes
@@ -54,9 +63,7 @@ app.use('/api/v1', RoutesV1);
 
 // 404 handler
 app.use(({ originalUrl }, _, next) => {
-  next(
-    new ServerError(StatusCodes.NOT_FOUND, `Route not found. ${originalUrl}`),
-  );
+  next(notFoundError(originalUrl));
 });
 
 // Error handler

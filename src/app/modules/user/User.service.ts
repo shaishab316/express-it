@@ -1,68 +1,133 @@
-/* eslint-disable no-unused-vars */
-import { TUser } from './User.interface';
-import User from './User.model';
-import { StatusCodes } from 'http-status-codes';
+import type { TList } from '../query/Query.interface';
+import {
+  userSearchableFields as searchFields,
+  userDefaultOmit,
+} from './User.constant';
+import { EUserRole, Prisma, prisma, User as TUser } from '../../../utils/db';
+import { TPagination } from '../../../utils/server/serveResponse';
+import { deleteFile } from '../../middlewares/capture';
+import type { TUserEdit } from './User.interface';
 import ServerError from '../../../errors/ServerError';
-import { RootFilterQuery, Types } from 'mongoose';
-import { TList } from '../query/Query.interface';
-import Auth from '../auth/Auth.model';
-import { TAuth } from '../auth/Auth.interface';
-import { useSession } from '../../../util/db/session';
-import { Request } from 'express';
-import { userSearchableFields as searchFields } from './User.constant';
-import { deleteImage } from '../../middlewares/capture';
+import { StatusCodes } from 'http-status-codes';
+import { hashPassword } from '../auth/Auth.utils';
+import { generateOTP } from '../../../utils/crypto/otp';
+import emailQueue from '../../../utils/mq/emailQueue';
+import { errorLogger } from '../../../utils/logger';
+import { otp_send_template } from '../../../templates';
+import config from '../../../config';
 
 export const UserServices = {
-  async create(userData: Partial<TUser & TAuth>) {
-    return useSession(async session => {
-      let user = await User.findOne({ email: userData.email }).session(session);
+  async getNextUserId(
+    where:
+      | { role: EUserRole; is_admin?: never }
+      | { role?: never; is_admin: true },
+  ): Promise<string> {
+    const prefix = where.role ? where.role.toLowerCase().slice(0, 2) : 'su';
 
-      if (user)
-        throw new ServerError(
-          StatusCodes.CONFLICT,
-          `${user.role.toCapitalize()} already exists!`,
-        );
+    const user = await prisma.user.findFirst({
+      where,
+      orderBy: { id: 'desc' },
+      select: { id: true },
+    });
 
-      [user] = await User.create([userData], { session });
+    if (!user) return `${prefix}-1`;
 
-      await Auth.create(
-        [
-          {
-            user: user._id,
-            password: userData.password,
-          },
-        ],
-        { session },
+    const currSL = parseInt(user.id.split('-')[1], 10);
+    return `${prefix}-${currSL + 1}`;
+  },
+
+  async register({ email, role, password, ...payload }: Omit<TUser, 'id'>) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { role: true }, //? select only role
+    });
+
+    if (existingUser)
+      throw new ServerError(
+        StatusCodes.CONFLICT,
+        `${existingUser.role} already exists with this ${email} email.`,
       );
 
-      return user;
+    const user = await prisma.user.create({
+      data: {
+        id: await UserServices.getNextUserId({ role }),
+        email,
+        role,
+        password: await hashPassword(password),
+        ...payload,
+      },
+      omit: {
+        ...userDefaultOmit,
+        email: false,
+        otp_id: false,
+      },
+    });
+
+    try {
+      const otp = generateOTP({
+        tokenType: 'access_token',
+        otpId: user.id + user.otp_id,
+      });
+
+      await emailQueue.add({
+        to: user.email,
+        subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
+        html: otp_send_template({
+          userName: user.name,
+          otp,
+          template: 'account_verify',
+        }),
+      });
+    } catch (error) {
+      if (error instanceof Error) errorLogger.error(error.message);
+    }
+
+    return {
+      ...user,
+      otp_id: undefined,
+    };
+  },
+
+  async updateUser({ user, body }: { user: Partial<TUser>; body: TUserEdit }) {
+    const data: Prisma.UserUpdateInput = body;
+
+    if (body.avatar && user.avatar) await deleteFile(user.avatar);
+
+    if (body.role && body.role !== user.role)
+      data.id = await this.getNextUserId({ role: body.role });
+
+    return prisma.user.update({
+      where: { id: user.id },
+      omit: userDefaultOmit,
+      data,
     });
   },
 
-  async edit({ user, body }: Request) {
-    if (body.avatar && user.avatar) await deleteImage(user.avatar);
-
-    Object.assign(user, body);
-
-    return user.save();
-  },
-
-  async list({ page, limit, search }: TList) {
-    const filter: RootFilterQuery<TUser> = {};
+  async getAllUser({
+    page,
+    limit,
+    search,
+    omit,
+    ...where
+  }: Prisma.UserWhereInput & TList & { omit: Prisma.UserOmit }) {
+    where ??= {} as any;
 
     if (search)
-      filter.$or = searchFields.map(field => ({
+      where.OR = searchFields.map(field => ({
         [field]: {
-          $regex: search,
-          $options: 'i',
+          contains: search,
+          mode: 'insensitive',
         },
       }));
 
-    const users = await User.find(filter)
-      .skip((page - 1) * limit)
-      .limit(limit);
+    const users = await prisma.user.findMany({
+      where,
+      omit,
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
-    const total = await User.countDocuments(filter);
+    const total = await prisma.user.count({ where });
 
     return {
       meta: {
@@ -71,20 +136,43 @@ export const UserServices = {
           limit,
           total,
           totalPages: Math.ceil(total / limit),
-        },
+        } as TPagination,
       },
       users,
     };
   },
 
-  async delete(userId: Types.ObjectId) {
-    return useSession(async session => {
-      const user = await User.findByIdAndDelete(userId).session(session);
-      await Auth.findOneAndDelete({ user: userId }).session(session);
-
-      if (user?.avatar) await deleteImage(user.avatar);
-
-      return user;
+  async getUserById({
+    userId,
+    omit = undefined,
+  }: {
+    userId: string;
+    omit?: Prisma.UserOmit;
+  }) {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      omit,
     });
+  },
+
+  async getUsersCount() {
+    const counts = await prisma.user.groupBy({
+      by: ['role'],
+      _count: {
+        _all: true,
+      },
+    });
+
+    return Object.fromEntries(
+      counts.map(({ role, _count }) => [role, _count._all]),
+    );
+  },
+
+  async deleteAccount(userId: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (user?.avatar) await deleteFile(user.avatar);
+
+    return prisma.user.delete({ where: { id: userId } });
   },
 };

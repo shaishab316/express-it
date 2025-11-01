@@ -1,34 +1,133 @@
 import { StatusCodes } from 'http-status-codes';
 import ServerError from '../../../errors/ServerError';
-import Chat from '../chat/Chat.model';
-import { TList } from '../query/Query.interface';
-import { TMessage } from './Message.interface';
-import Message from './Message.model';
+import { type Prisma, prisma } from '../../../utils/db';
+import type {
+  TCreateMessageArgs,
+  TDeleteMessageArgs,
+  TGetChatMessagesArgs,
+} from './Message.interface';
+import { deleteFiles } from '../../middlewares/capture';
+import { messageSearchableFields } from './Message.constant';
+import type { TPagination } from '../../../utils/server/serveResponse';
 
+/**
+ * All message related services
+ */
 export const MessageServices = {
-  async create(messageData: TMessage) {
-    return Message.create(messageData);
+  /**
+   * Create new message
+   */
+  async createMessage(payload: TCreateMessageArgs) {
+    return prisma.$transaction(async tx => {
+      //? update chat timestamp
+      tx.chat.update({
+        where: { id: payload.chat_id },
+        data: { timestamp: new Date() },
+      });
+
+      //? create message
+      return tx.message.create({
+        data: {
+          ...payload,
+          seen_by: {
+            connect: {
+              id: payload.user_id,
+            },
+          },
+        },
+        include: {
+          chat: {
+            select: {
+              user_ids: true,
+            },
+          },
+          seen_by: {
+            select: {
+              avatar: true,
+            },
+          },
+        },
+      });
+    });
   },
 
-  async list({ page, limit, user, chat }: TList & any) {
-    const hasChat = await Chat.exists({
-      _id: chat,
-      users: { $all: [user] },
+  /**
+   * Delete message
+   */
+  async deleteMessage({ message_id, user_id }: TDeleteMessageArgs) {
+    const message = await prisma.message.findUnique({
+      where: { id: message_id },
+      select: { user_id: true, media_urls: true, isDeleted: true },
     });
 
-    if (!hasChat)
-      throw new ServerError(StatusCodes.NOT_FOUND, 'Chat not found!');
+    //? ensure that user has permission to delete message
+    if (message?.user_id !== user_id) {
+      throw new ServerError(
+        StatusCodes.FORBIDDEN,
+        "You can't delete other's message",
+      );
+    }
 
-    const messages = await Message.find({
-      chat,
-    })
-      .sort('-createdAt')
-      .skip((page - 1) * limit)
-      .limit(limit);
+    if (message.isDeleted) {
+      throw new ServerError(StatusCodes.BAD_REQUEST, 'Message already deleted');
+    }
 
-    const total = await Message.countDocuments({
-      chat,
+    await deleteFiles(message.media_urls);
+
+    return prisma.message.update({
+      where: { id: message_id },
+      data: {
+        media_urls: [],
+        text: '𝒹𝑒𝓁𝑒𝓉𝑒𝒹 𝓂𝑒𝓈𝓈𝒶𝑔𝑒',
+        isDeleted: true,
+      },
+      select: {
+        chat: {
+          select: { id: true, user_ids: true },
+        },
+      },
     });
+  },
+
+  /**
+   * Get chat messages
+   */
+  async getChatMessages({
+    chat_id,
+    limit,
+    page,
+    search,
+  }: TGetChatMessagesArgs) {
+    const messageWhere: Prisma.MessageWhereInput = {
+      chat_id,
+    };
+
+    if (search) {
+      messageWhere.OR = messageSearchableFields.map(field => ({
+        [field]: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      }));
+    }
+
+    const messages = await prisma.message.findMany({
+      where: messageWhere,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: {
+        created_at: 'desc',
+      },
+      include: {
+        seen_by: {
+          select: {
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    const total = await prisma.message.count({ where: messageWhere });
 
     return {
       meta: {
@@ -37,9 +136,12 @@ export const MessageServices = {
           limit,
           total,
           totalPages: Math.ceil(total / limit),
-        },
+        } satisfies TPagination,
       },
-      messages,
+      messages: messages.map(({ seen_by, ...message }) => ({
+        ...message,
+        seen_by: seen_by.map(user => user.avatar),
+      })),
     };
   },
 };
