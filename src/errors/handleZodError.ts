@@ -1,10 +1,10 @@
 import { ZodError } from 'zod';
-import { TErrorMessage } from '../types/errors.types';
+import { TErrorMessage } from '../types/errors';
 import { StatusCodes } from 'http-status-codes';
 
-const handleZodError = ({ errors }: ZodError) => {
-  const errorMessages: TErrorMessage[] = errors.map(({ path, message }) => ({
-    path: path[path.length - 1],
+const handleZodError = ({ issues }: ZodError) => {
+  const errorMessages: TErrorMessage[] = issues.map(({ path, message }) => ({
+    path: path[path.length - 1] as string,
     message,
   }));
 

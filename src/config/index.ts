@@ -1,25 +1,36 @@
+/* eslint-disable no-useless-escape */
 import './configure';
-import env from '../util/env/env';
+import env from '../utils/env';
 import type ms from 'ms';
-import { genSecret } from '../util/crypto/genSecret';
-import getIpAddress from '../util/server/getIpAddress';
+import { genSecret } from '../utils/crypto/genSecret';
 import path from 'path';
+import { enum_decode } from '../utils/transform/enum';
+import { capitalize } from '../utils/transform/capitalize';
 
-const node_env = process.env.NODE_ENV ?? 'development';
+export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
+
+const node_env = enum_decode(process.env.NODE_ENV) ?? 'development';
+const isDevelopment = node_env !== 'production';
 
 const server_name =
   process.env.SERVER_NAME ??
-  path.basename(process.cwd())?.toCapitalize() ??
+  capitalize(path.basename(process.cwd())) ??
   'Server';
 
 const admin_email =
-  process.env.ADMIN_EMAIL ?? `admin@${server_name.toLocaleLowerCase()}.com`;
+  process.env.ADMIN_EMAIL ?? `admin@${server_name.toLowerCase()}.com`;
 
 const user_email =
-  process.env.EMAIL_USER ?? `${server_name.toLocaleLowerCase()}@gmail.com`;
+  process.env.EMAIL_USER ?? `${server_name.toLowerCase()}@gmail.com`;
 
 const support_email =
-  process.env.EMAIL_SUPPORT ?? `support@${server_name.toLocaleLowerCase()}.com`;
+  process.env.EMAIL_SUPPORT ?? `support@${server_name.toLowerCase()}.com`;
+
+const db_name = server_name.toLowerCase().replace(' ', '-');
+
+const port = Number(
+  process.env.PORT ?? Math.floor(Math.random() * 1000) + 3000,
+);
 
 /**
  * Configuration object for the application
@@ -34,27 +45,27 @@ const config = {
       regex: '^(development|production)$',
     }),
     allowed_origins: env('allowed origins', ['*'], {
-      regex: '^\\*$|^(https?://[^,\\s]+)(,https?://[^,\\s]+)*',
+      regex: '^\\*$|^$|^(https?:\\/\\/[^,\\s]+)(,https?:\\/\\/[^,\\s]+)*$',
     }),
-    ip_address: env('ip address', getIpAddress(), {
-      regex: '^(\\d{1,3}\\.){3}\\d{1,3}$',
-    }),
-    port: env('port', Math.floor(Math.random() * 1_000) + 3_000, {
+    port: env('port', port, {
       regex: '^\\d{4,5}$',
     }),
-    developer: env('developer', 'Shaishab Chandra Shil', {
-      regex: '^.{2,100}$',
-      comment: "!Don't change this",
-    }),
+    developer: {
+      name: 'Shaishab Chandra Shil',
+      github: 'https://github.com/shaishab316',
+    },
     name: env('server name', server_name, {
       regex: '^\\w[\\w\\s-]{1,50}$',
     }),
-    isDevelopment: node_env !== 'production',
+    isDevelopment,
     logo: env('logo', '/images/logo.png', {
       regex: '^\\/.*\\.(png|jpg|jpeg|svg)$',
     }),
     default_avatar: env('default avatar', '/images/placeholder.png', {
       regex: '^\\/.*\\.(png|jpg|jpeg|svg)$',
+    }),
+    db_name: env('db name', db_name, {
+      regex: '^\\w[\\w\\s-]{1,50}$',
     }),
     mock_mail: env('mock mail', true, {
       regex: '^(true|false)$',
@@ -63,18 +74,17 @@ const config = {
   },
 
   url: {
-    database: env(
-      'database url',
-      `mongodb://127.0.0.1:27017/${server_name.toLowerCase().replace(' ', '-')}`,
-      {
-        up: 'Database info - start',
-        regex: '^mongodb:\\/\\/.*$',
-      },
-    ),
-    api_doc: env('api doc', '', {
+    database: env('database url', ``, {
+      up: 'Database info - start',
+      regex: '',
+    }),
+    redis: env('redis url', `redis://localhost:6379`, {
+      regex: '',
+    }),
+    ui: env('ui url', `http://localhost:${port}`, {
       regex: '^https?:\\/\\/.*$|^$',
     }),
-    ui: env('ui url', '', {
+    href: env('href url', `http://localhost:${port}`, {
       regex: '^https?:\\/\\/.*$|^$',
       down: 'Database info - end',
     }),
@@ -86,43 +96,27 @@ const config = {
   }),
 
   otp: {
-    length: env('otp length', 6, {
-      regex: '^\\d{1,2}$',
-    }),
-    exp: env<ms.StringValue>('otp expire in', '10m', {
-      regex: '^\\d+[smhd]$',
-    }),
-    limit: env('otp limit', 2, {
-      regex: '^\\d+$',
-    }),
-    window: env<ms.StringValue>('otp window', '10s', {
-      regex: '^\\d+[smhd]$',
-    }),
+    length: env('otp length', 6, { regex: '^\\d{1,2}$' }),
+    exp: env<ms.StringValue>('otp expire in', '5m', { regex: ms_regex }),
   },
 
   jwt: {
     access_token: {
-      secret: env('jwt access secret', genSecret(), {
-        regex: '^.{10,}$',
-      }),
+      secret: env('jwt access secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt access expire in', '1d', {
-        regex: '^\\d+[smhd]$',
+        regex: ms_regex,
       }),
     },
     refresh_token: {
-      secret: env('jwt refresh secret', genSecret(), {
-        regex: '^.{10,}$',
-      }),
+      secret: env('jwt refresh secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt refresh expire in', '30d', {
-        regex: '^\\d+[smhd]$',
+        regex: ms_regex,
       }),
     },
     reset_token: {
-      secret: env('jwt reset secret', genSecret(), {
-        regex: '^.{10,}$',
-      }),
+      secret: env('jwt reset secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt reset expire in', '10m', {
-        regex: '^\\d+[smhd]$',
+        regex: ms_regex,
         down: 'Authentication - end',
       }),
     },
@@ -130,29 +124,25 @@ const config = {
 
   email: {
     user: env('email user', user_email, {
-      up: 'Email credentials - start',
       regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
+      up: 'Email info - start',
     }),
     from: `${server_name} <${user_email}>`,
-    port: env('email port', 587, {
-      regex: '^\\d{2,5}$',
-    }),
+    port: env('email port', 587, { regex: '^\\d{2,5}$' }),
     host: env('email host', 'smtp.gmail.com', {
       regex: '^[\\w.-]+\\.[a-z]{2,}$',
     }),
-    pass: env('email pass', genSecret(4), {
-      regex: '^.{4,}$',
-    }),
+    pass: env('email pass', genSecret(4), { regex: '^.{4,}$' }),
     support: env('support email', support_email, {
       regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
-      down: 'Email credentials - end',
+      down: 'Email info - end',
     }),
   },
 
   admin: {
     name: env('admin name', 'Mr. Admin', {
-      up: 'Admin info - start',
       regex: '^.{2,100}$',
+      up: 'Admin info - start',
     }),
     email: env('admin email', admin_email, {
       regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
@@ -162,35 +152,6 @@ const config = {
       down: 'Admin info - end',
     }),
   },
-
-  // payment: {
-  //   stripe: {
-  //     secret: env('stripe secret', `sk_${genSecret(16)}`, {
-  //       up: 'Payment credentials - start',
-  //       regex: '^sk_\\w+$',
-  //     }),
-  //     webhook: env('stripe webhook secret', `whsec_${genSecret(16)}`, {
-  //       regex: '^whsec_\\w+$',
-  //     }),
-  //   },
-  //   methods: env<[string, ...string[]]>('payment methods', ['card'], {
-  //     regex: '^card$|...|^google_pay$',
-  //   }),
-  //   default_method: env('default payment method', 'card', {
-  //     regex: '^card$',
-  //     down: 'Payment credentials - end',
-  //   }),
-  // },
-
-  // ai: {
-  //   gemini: {
-  //     key: env('gemini key', genSecret(16), {
-  //       up: 'AI credentials - start',
-  //       regex: '^.{16,}$',
-  //       down: 'AI credentials - end',
-  //     }),
-  //   },
-  // },
 };
 
 export default config;

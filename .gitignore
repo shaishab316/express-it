@@ -1,7 +1,14 @@
 node_modules
 .env
 
-winston
-.vscode
-uploads
-dist
+/dist
+/prisma
+/tmp
+
+*.log
+uploads/*
+.vscode/*
+api*.json
+postman/*
+
+**/migrations

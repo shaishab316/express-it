@@ -1,90 +1,134 @@
 import { AuthServices } from './Auth.service';
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
-import { TToken } from './Auth.interface';
-import { EUserRole } from '../user/User.enum';
-import { OtpServices } from '../otp/Otp.service';
+import { verifyPassword } from './Auth.utils';
+import ServerError from '../../../errors/ServerError';
+import { StatusCodes } from 'http-status-codes';
+import { TToken } from '../../../types/auth.types';
 
 export const AuthControllers = {
-  login: catchAsync(async ({ user, body }, res) => {
-    await AuthServices.getAuth(user._id, body.password);
+  login: catchAsync(async ({ body }, res) => {
+    const user = await AuthServices.login(body);
 
-    const { access_token, refresh_token } = await AuthServices.retrieveToken(
-      user._id,
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user!.id!,
+      'access_token',
+      'refresh_token',
     );
 
-    AuthServices.setTokens(res, {
-      access_token,
-      refresh_token,
+    AuthServices.setTokens(res, { access_token, refresh_token });
+
+    return {
+      message: 'Login successfully!',
+      data: { access_token, refresh_token, user },
+    };
+  }),
+
+  accountVerifyOtpSend: catchAsync(async ({ body }) => {
+    await AuthServices.accountVerifyOtpSend(body);
+
+    return {
+      message: 'OTP sent successfully!',
+    };
+  }),
+
+  accountVerify: catchAsync(async ({ body }, res) => {
+    const user = await AuthServices.userOtpVerify(body);
+
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user.id!,
+      'access_token',
+      'refresh_token',
+    );
+
+    AuthServices.setTokens(res, { access_token, refresh_token });
+
+    return {
+      message: 'Account verified successfully!',
+      data: { access_token, refresh_token, user },
+    };
+  }),
+
+  forgotPasswordOtpVerify: catchAsync(async ({ body }, res) => {
+    const user = await AuthServices.userOtpVerify({
+      ...body,
+      token_type: 'reset_token',
     });
 
-    serveResponse(res, {
-      message: 'Login successfully!',
-      data: { access_token, user },
+    const { reset_token } = AuthServices.retrieveToken(user.id!, 'reset_token');
+
+    AuthServices.setTokens(res, { reset_token });
+
+    return {
+      message: 'OTP verified successfully!',
+      data: { reset_token, user },
+    };
+  }),
+
+  forgotPassword: catchAsync(async ({ body }) => {
+    await AuthServices.forgotPassword(body);
+
+    return {
+      message: 'OTP sent successfully!',
+    };
+  }),
+
+  resetPassword: catchAsync(async ({ user, body }, res) => {
+    const userData = await AuthServices.resetPassword(user, body);
+
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user.id,
+      'access_token',
+      'refresh_token',
+    );
+
+    AuthServices.setTokens(res, { access_token, refresh_token });
+    AuthServices.destroyTokens(res, 'reset_token');
+
+    return {
+      message: 'Password reset successfully!',
+      data: { access_token, refresh_token, user: userData },
+    };
+  }),
+
+  changePassword: catchAsync(async ({ user, body }) => {
+    if (!(await verifyPassword(body.oldPassword, user.password))) {
+      throw new ServerError(StatusCodes.UNAUTHORIZED, 'Incorrect password');
+    }
+
+    if (body.oldPassword === body.newPassword) {
+      throw new ServerError(
+        StatusCodes.UNAUTHORIZED,
+        'You cannot use old password',
+      );
+    }
+
+    await AuthServices.modifyPassword({
+      userId: user.id,
+      password: body.newPassword,
     });
+
+    return {
+      message: 'Password changed successfully!',
+    };
   }),
 
   logout: catchAsync(async ({ cookies }, res) => {
-    AuthServices.destroyTokens(res, Object.keys(cookies) as TToken[]);
+    AuthServices.destroyTokens(res, ...(Object.keys(cookies) as TToken[]));
 
-    serveResponse(res, {
+    return {
       message: 'Logged out successfully!',
-    });
+    };
   }),
 
-  resetPassword: catchAsync(async ({ body, user }, res) => {
-    await AuthServices.resetPassword(user._id, body.password);
-
-    const { access_token, refresh_token } = await AuthServices.retrieveToken(
-      user._id,
+  refreshToken: catchAsync(async ({ user }) => {
+    const { access_token } = AuthServices.retrieveToken(
+      user.id,
+      'access_token',
     );
 
-    AuthServices.destroyTokens(res, ['reset_token']);
-    AuthServices.setTokens(res, { access_token, refresh_token });
-
-    serveResponse(res, {
-      message: 'Password reset successfully!',
-      data: { access_token, user },
-    });
-  }),
-
-  refreshToken: catchAsync(async ({ user }, res) => {
-    const { access_token } = await AuthServices.retrieveToken(user._id);
-
-    AuthServices.setTokens(res, { access_token });
-
-    serveResponse(res, {
+    return {
       message: 'AccessToken refreshed successfully!',
       data: { access_token },
-    });
-  }),
-
-  changePassword: catchAsync(async ({ user, body }, res) => {
-    const auth = await AuthServices.getAuth(user._id, body.oldPassword);
-
-    auth.password = body.newPassword;
-
-    await auth.save();
-
-    serveResponse(res, {
-      message: 'Password changed successfully!',
-    });
-  }),
-
-  verifyAccount: catchAsync(async ({ user, body }, res) => {
-    if (user.role !== EUserRole.GUEST)
-      return serveResponse(res, {
-        message: 'You are already verified!',
-      });
-
-    await OtpServices.verify(user._id, body.otp);
-
-    user.role = EUserRole.USER;
-    await user.save();
-
-    serveResponse(res, {
-      message: 'Account verified successfully!',
-      data: { user },
-    });
+    };
   }),
 };

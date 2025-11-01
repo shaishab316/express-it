@@ -1,38 +1,43 @@
 /* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars, no-console */
 import { ErrorRequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import colors from 'colors';
+import chalk from 'chalk';
 import { ZodError } from 'zod';
-import mongoose from 'mongoose';
 import config from '../../config';
 import ServerError from '../../errors/ServerError';
 import handleZodError from '../../errors/handleZodError';
-import handleValidationError from '../../errors/handleValidationError';
-import handleMongooseDuplicateError from '../../errors/handleMongooseDuplicateError';
-import { errorLogger } from '../../util/logger/logger';
-import { TErrorHandler, TErrorMessage } from '../../types/errors.types';
+import { errorLogger } from '../../utils/logger';
+import type { TErrorHandler, TErrorMessage } from '../../types/errors';
 import multer from 'multer';
 import handleMulterError from '../../errors/handleMulterError';
-import { deleteImage } from './capture';
+import { Prisma } from '../../utils/db';
+import {
+  handlePrismaRequestError,
+  handlePrismaValidationError,
+} from '../../errors/handlePrismaErrors';
+import { deleteFiles } from './capture';
 
-const defaultError: TErrorHandler = {
+export const defaultError: TErrorHandler = {
   statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
   message: 'Something went wrong',
   errorMessages: [],
 };
-
-const globalErrorHandler: ErrorRequestHandler = (error, req, res, _) => {
+/**
+ * Global error handler middleware
+ */
+const globalErrorHandler: ErrorRequestHandler = async (error, req, res, _) => {
   /** delete uploaded files */
-  req.tempFiles?.forEach(deleteImage);
+  if (req.tempFiles) await deleteFiles(req.tempFiles);
 
   if (config.server.isDevelopment)
-    console.log(colors.red('🚨 globalErrorHandler ~~ '), error);
-  else errorLogger.error(colors.red('🚨 globalErrorHandler ~~ '), error);
+    console.log(chalk.red('🚨 globalErrorHandler ~~ '), error);
+  else errorLogger.error(chalk.red('🚨 globalErrorHandler ~~ '), error);
 
   const { statusCode, message, errorMessages } = formatError(error);
 
   res.status(statusCode).json({
     success: false,
+    statusCode,
     message,
     errorMessages,
     stack: config.server.isDevelopment && error.stack,
@@ -41,12 +46,16 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, _) => {
 
 export default globalErrorHandler;
 
-const formatError = (error: any): TErrorHandler => {
+/**
+ * Formats the error message
+ */
+export const formatError = (error: Error): TErrorHandler => {
   if (error instanceof multer.MulterError) return handleMulterError(error);
   if (error instanceof ZodError) return handleZodError(error);
-  if (error instanceof mongoose.Error.ValidationError)
-    return handleValidationError(error);
-  if (error.code === 11000) return handleMongooseDuplicateError(error);
+  if (error instanceof Prisma.PrismaClientKnownRequestError)
+    return handlePrismaRequestError(error);
+  if (error instanceof Prisma.PrismaClientValidationError)
+    return handlePrismaValidationError(error);
   if (error instanceof ServerError)
     return {
       statusCode: error.statusCode,

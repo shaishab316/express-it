@@ -3,51 +3,76 @@ import { UserControllers } from './User.controller';
 import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 import { UserValidations } from './User.validation';
-import User from './User.model';
 import capture from '../../middlewares/capture';
 import { AuthControllers } from '../auth/Auth.controller';
+import { changePasswordRateLimiter } from '../auth/Auth.utils';
 
-/** Admin Routes */
+const avatarCapture = capture({
+  avatar: {
+    size: 5 * 1024 * 1024,
+    maxCount: 1,
+    fileType: 'images',
+  },
+});
+
 const admin = Router();
+{
+  admin.get(
+    '/',
+    purifyRequest(QueryValidations.list, UserValidations.getAllUser),
+    UserControllers.superGetAllUser,
+  );
 
-admin.get(
-  '/',
-  purifyRequest(QueryValidations.list, UserValidations.list),
-  UserControllers.list,
-);
+  admin.patch(
+    '/:userId/edit',
+    avatarCapture,
+    purifyRequest(
+      QueryValidations.exists('userId', 'user'),
+      UserValidations.editProfile,
+    ),
+    UserControllers.superEditProfile,
+  );
 
-admin.delete(
-  '/:userId/delete',
-  purifyRequest(QueryValidations.exists('userId', User)),
-  UserControllers.delete,
-);
+  admin.delete(
+    '/:userId/delete',
+    purifyRequest(QueryValidations.exists('userId', 'user')),
+    UserControllers.superDeleteAccount,
+  );
+}
 
-/** User Routes */
+const all = Router();
+{
+  all.get('/', UserControllers.profile);
 
-const user = Router();
+  all.patch(
+    '/edit',
+    avatarCapture,
+    purifyRequest(UserValidations.editProfile),
+    UserControllers.editProfile,
+  );
 
-user.get('/', UserControllers.me);
+  all.delete('/delete', UserControllers.deleteAccount);
 
-user.patch(
-  '/edit',
-  capture({
-    avatar: {
-      maxCount: 1,
-      size: 5 * 1024 * 1024,
-      default: null,
-    },
-  }),
-  purifyRequest(UserValidations.edit),
-  UserControllers.edit,
-);
-
-user.post(
-  '/change-password',
-  purifyRequest(UserValidations.changePassword),
-  AuthControllers.changePassword,
-);
+  all.post(
+    '/change-password',
+    changePasswordRateLimiter,
+    purifyRequest(UserValidations.changePassword),
+    AuthControllers.changePassword,
+  );
+}
 
 export const UserRoutes = {
+  /**
+   * Only admin can access
+   *
+   * @url : (base_url)/admin/users/
+   */
   admin,
-  user,
+
+  /**
+   * All users can access
+   *
+   * @url : (base_url)/profile/
+   */
+  all,
 };

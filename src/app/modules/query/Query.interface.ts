@@ -1,5 +1,6 @@
 export type TList = {
   page: number;
   limit: number;
-  [key: string]: any;
+  search?: string;
+  [key: string]: unknown;
 };

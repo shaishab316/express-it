@@ -1,32 +1,38 @@
 import { Router } from 'express';
 import { ChatControllers } from './Chat.controller';
 import purifyRequest from '../../middlewares/purifyRequest';
+import { ChatValidations } from './Chat.validation';
 import { QueryValidations } from '../query/Query.validation';
-import User from '../user/User.model';
-import Chat from './Chat.model';
-import { MessageControllers } from '../message/Message.controller';
 
-const router = Router();
+const all = Router();
+{
+  all.get(
+    '/',
+    purifyRequest(QueryValidations.list, ChatValidations.getInbox),
+    ChatControllers.getInbox,
+  );
 
-router.get('/', purifyRequest(QueryValidations.list), ChatControllers.list);
+  all.post(
+    '/new-chat',
+    purifyRequest(ChatValidations.newChat),
+    ChatControllers.newChat,
+  );
 
-router.post(
-  '/:userId',
-  purifyRequest(QueryValidations.exists('userId', User)),
-  ChatControllers.create,
-);
+  all.delete(
+    '/delete-chat',
+    purifyRequest(ChatValidations.deleteChat),
+    ChatControllers.deleteChat,
+  );
+}
 
-router.delete(
-  '/:chatId/delete',
-  purifyRequest(QueryValidations.exists('chatId', Chat)),
-  ChatControllers.delete,
-);
-
-/** Message routes */
-router.get(
-  '/:chatId/messages',
-  purifyRequest(QueryValidations.exists('chatId', Chat), QueryValidations.list),
-  MessageControllers.list,
-);
-
-export const ChatRoutes = router;
+/**
+ * All chat related routes
+ */
+export const ChatRoutes = {
+  /**
+   * All user can access
+   *
+   * @url : (base_url)/inbox
+   */
+  all,
+};

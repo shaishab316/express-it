@@ -1,39 +1,53 @@
-/* eslint-disable no-console */
-import { AnyZodObject } from 'zod';
+/* eslint-disable no-unused-vars */
+import type { Request } from 'express';
+import { ZodObject } from 'zod';
 import catchAsync from './catchAsync';
 import config from '../../config';
 
 const keys = ['body', 'query', 'params', 'cookies'] as const;
 
+type SchemaOrFn =
+  | ZodObject
+  | ((req: Request) => ZodObject | Promise<ZodObject>);
+
 /**
- * Middleware to purify and validate the request {body, cookies, query, params} using multiple Zod schemas.
+ * Middleware to validate and sanitize incoming Express requests using Zod schemas.
  *
- * This middleware validates the request against all provided Zod schemas.
- * The validated and merged data is then assigned back to `req`.
- * If validation fails, an error is thrown and handled by `catchAsync`.
- *
- * @param {...AnyZodObject} schemas - The Zod schemas to validate the request against.
- * @return Middleware function to purify the request.
+ * Supports static and dynamic schemas (functions returning schemas).
+ * Validates body, query, params, and cookies, then merges results into `req`.
  */
-const purifyRequest = (...schemas: AnyZodObject[]) =>
+const purifyRequest = (...schemas: SchemaOrFn[]) =>
   catchAsync(
     async (req, _, next) => {
       const results = await Promise.all(
-        schemas.map(schema => schema.parseAsync(req)),
+        schemas.map(async schema => {
+          const zodSchema =
+            typeof schema === 'function' ? await schema(req) : schema;
+          return zodSchema.parseAsync(req);
+        }),
       );
 
       keys.forEach(key => {
-        req[key] = Object.assign(
+        const purified = Object.assign(
           {},
           key === 'params' && req.params,
-          ...results.map(result => result?.[key] ?? {}),
+          ...results.map((result: any) => result?.[key] ?? {}),
         );
+
+        //? Fix express 5 issue (req is read-only)
+        Object.defineProperty(req, key, {
+          value: purified,
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
       });
 
       next();
     },
     (error, req, _, next) => {
       if (config.server.isDevelopment)
+        // eslint-disable-next-line no-console
         keys.forEach(key => console.log(`${key} :`, req[key]));
 
       next(error);

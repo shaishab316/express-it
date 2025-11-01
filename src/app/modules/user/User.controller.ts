@@ -1,68 +1,104 @@
 import { UserServices } from './User.service';
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
-import { OtpServices } from '../otp/Otp.service';
-import { errorLogger } from '../../../util/logger/logger';
+import { prisma, User as TUser } from '../../../utils/db';
+import { enum_decode } from '../../../utils/transform/enum';
+import { capitalize } from '../../../utils/transform/capitalize';
 
 export const UserControllers = {
-  create: catchAsync(async ({ body }, res) => {
-    const user = await UserServices.create(body);
+  register: catchAsync(async ({ body }, res) => {
+    const user = await UserServices.register(body);
 
-    try {
-      await OtpServices.send(user, 'accountVerify');
-    } catch (error) {
-      errorLogger.error(error);
-    }
-
-    const { access_token, refresh_token } = await AuthServices.retrieveToken(
-      user._id!,
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user.id,
+      'access_token',
+      'refresh_token',
     );
 
     AuthServices.setTokens(res, { access_token, refresh_token });
 
-    serveResponse(res, {
+    return {
       statusCode: StatusCodes.CREATED,
-      message: `${user.role.toCapitalize() ?? 'User'} registered successfully!`,
+      message: `${capitalize(user.role) ?? 'Unknown'} registered successfully!`,
       data: {
         access_token,
+        refresh_token,
         user,
       },
-    });
+    };
   }),
 
-  edit: catchAsync(async (req, res) => {
-    const data = await UserServices.edit(req);
+  editProfile: catchAsync(async req => {
+    const data = await UserServices.updateUser(req);
 
-    serveResponse(res, {
+    return {
       message: 'Profile updated successfully!',
       data,
-    });
+    };
   }),
 
-  list: catchAsync(async (req, res) => {
-    const { meta, users } = await UserServices.list(req.query);
+  superEditProfile: catchAsync(async ({ params, body }) => {
+    const user = (await prisma.user.findUnique({
+      where: { id: params.userId },
+    })) as TUser;
 
-    serveResponse(res, {
+    const data = await UserServices.updateUser({
+      user,
+      body,
+    });
+
+    return {
+      message: `${capitalize(user?.role) ?? 'User'} updated successfully!`,
+      data,
+    };
+  }),
+
+  getAllUser: catchAsync(async ({ query }) => {
+    const { meta, users } = await UserServices.getAllUser(query);
+
+    return {
       message: 'Users retrieved successfully!',
       meta,
       data: users,
-    });
+    };
   }),
 
-  me: catchAsync(({ user }, res) => {
-    serveResponse(res, {
+  superGetAllUser: catchAsync(async ({ query }) => {
+    const { meta, users } = await UserServices.getAllUser(query);
+
+    Object.assign(meta, {
+      users: await UserServices.getUsersCount(),
+    });
+
+    return {
+      message: 'Users retrieved successfully!',
+      meta,
+      data: users,
+    };
+  }),
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+  profile: catchAsync(({ user: { password: _, ...user } }) => {
+    return {
       message: 'Profile retrieved successfully!',
       data: user,
-    });
+    };
   }),
 
-  delete: catchAsync(async ({ params }, res) => {
-    const user = await UserServices.delete(params.userId);
+  superDeleteAccount: catchAsync(async ({ params }) => {
+    const user = await UserServices.deleteAccount(params.userId);
 
-    serveResponse(res, {
+    return {
       message: `${user?.name ?? 'User'} deleted successfully!`,
-    });
+    };
+  }),
+
+  deleteAccount: catchAsync(async ({ user }) => {
+    await UserServices.deleteAccount(user.id);
+
+    return {
+      message: `Goodbye ${user?.name ?? enum_decode(user.role)}! Your account has been deleted successfully!`,
+    };
   }),
 };

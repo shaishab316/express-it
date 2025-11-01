@@ -5,21 +5,28 @@
   "main": "dist/server.js",
   "author": {
     "name": "Shaishab Chandra Shil",
-    "github": "https://github.com/shaishabcoding"
+    "github": "https://github.com/shaishab316"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/shaishabcoding/express-it.git"
+    "url": "https://github.com/shaishab316/express-it.git"
   },
   "scripts": {
-    "new-module": "node ./src/app/modules/.builder.js",
-    "build": "tsc",
+    "prepare": "simple-git-hooks",
+    "new-module": "tsx ./src/app/modules/.builder.ts",
+    "build": "node esbuild.mjs",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only --watch .env src/server.ts",
-    "stripe": "stripe listen --forward-to http://192.168.10.132:3759/api/v1/payment/stripe/webhook",
+    "dev": "set DEBUG=socket.io* && tsx --watch src/server.ts",
+    "seed-admin": "tsx scripts/seedAdmin.ts",
     "lint": "eslint src --ignore-path .gitignore --ext .ts",
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "type-check": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma-studio": "npx prisma studio",
+    "prisma-reset": "npx prisma migrate reset --force",
+    "prisma-migrate": "npx prisma migrate dev",
+    "prisma-generate": "rm -rf prisma && npx prisma generate",
+    "prisma-seed": "npx prisma db seed"
   },
   "keywords": [
     "express-boilerplate",
@@ -34,57 +41,62 @@
     "modern-express-setup"
   ],
   "license": "MIT",
+  "simple-git-hooks": {
+    "pre-commit": "npm run lint && npm run type-check && npm run prettier"
+  },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.5",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/html-pdf": "^3.0.3",
+    "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.6",
-    "@types/kill-port": "^2.0.3",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.11",
     "@types/nodemailer": "^6.4.16",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
     "@typescript-eslint/parser": "^7.15.0",
+    "esbuild": "^0.25.11",
+    "esbuild-node-externals": "^1.18.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
-    "inquirer": "^7.3.3",
-    "kill-port": "^2.0.1",
+    "inquirer": "^12.10.0",
+    "ora": "^9.0.0",
     "prettier": "^3.4.2",
     "prettier-eslint": "^16.3.0",
-    "ts-node-dev": "^2.0.0",
+    "prisma": "^6.18.0",
+    "semantic-release": "^24.2.7",
+    "simple-git-hooks": "^2.13.1",
+    "table": "^6.9.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "axios": "^1.7.7",
+    "@prisma/client": "^6.18.0",
+    "@types/node": "^24.3.0",
+    "axios": "^1.12.0",
     "bcryptjs": "^3.0.2",
-    "colors": "^1.4.0",
+    "bull": "^4.16.5",
+    "chalk": "^5.6.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.5.0",
-    "html-pdf": "^3.0.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
     "http-status-codes": "^2.3.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.2",
-    "mongoose-autopopulate": "^1.1.0",
     "morgan": "^1.10.0",
     "ms": "^2.1.3",
-    "multer": "^1.4.4",
-    "multer-gridfs-storage": "meme8383/multer-gridfs-storage#f82252c",
-    "nodemailer": "^6.9.16",
-    "redis": "^5.0.1",
-    "socket.io": "^4.7.5",
-    "stripe": "^17.2.1",
-    "uuid": "^11.1.0",
+    "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.7",
+    "otplib": "^12.0.1",
+    "redis": "^5.9.0",
+    "socket.io": "^4.8.1",
+    "strip-ansi": "^7.1.2",
+    "stripe": "^19.1.0",
     "winston": "^3.13.0",
-    "winston-mongodb": "^6.0.0",
-    "zod": "^3.23.8"
-  },
-  "overrides": {
-    "multer-gridfs-storage": {
-      "multer": "^1.4.4"
-    }
+    "zod": "^4.1.12"
   }
 }
