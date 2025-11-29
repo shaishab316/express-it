@@ -2,7 +2,7 @@
 import type { Request } from 'express';
 import { ZodObject } from 'zod';
 import catchAsync from './catchAsync';
-import config from '../../config';
+import config from '@/config';
 
 const keys = ['body', 'query', 'params', 'cookies'] as const;
 

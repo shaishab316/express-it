@@ -1,11 +1,11 @@
 /* eslint-disable no-unused-vars,no-console */
 import chalk from 'chalk';
 import { createServer } from 'http';
-import app from '../../app';
-import config from '../../config';
+import app from '@/app';
+import config from '@/config';
 import { errorLogger } from '../logger';
 import { connectDB } from '../db';
-import { TCleanupFunction, TServer } from '../../types/utils.types';
+import { TCleanupFunction, TServer } from '@/types/utils.types';
 import ora from 'ora';
 
 const startTime = performance.now();

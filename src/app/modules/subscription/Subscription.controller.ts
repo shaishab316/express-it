@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
-import catchAsync from '../../middlewares/catchAsync';
+import catchAsync from '@/app/middlewares/catchAsync';
 import { SubscriptionServices } from './Subscription.service';
-import ServerError from '../../../errors/ServerError';
+import ServerError from '@/errors/ServerError';
 
 export const SubscriptionControllers = {
   createSubscription: catchAsync(async ({ body }) => {

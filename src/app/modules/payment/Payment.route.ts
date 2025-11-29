@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { PaymentControllers } from './Payment.controller';
-import purifyRequest from '../../middlewares/purifyRequest';
+import purifyRequest from '@/app/middlewares/purifyRequest';
 import { PaymentValidations } from './Payment.validation';
-import auth from '../../middlewares/auth';
+import auth from '@/app/middlewares/auth';
 
 const free = Router();
 {

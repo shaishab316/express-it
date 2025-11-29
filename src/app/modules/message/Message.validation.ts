@@ -1,7 +1,7 @@
 import z from 'zod';
-import { exists } from '../../../utils/db/exists';
-import type { TModelZod } from '../../../types/zod';
-import type { Message as TMessage } from '../../../utils/db';
+import { exists } from '@/utils/db/exists';
+import type { TModelZod } from '@/types/zod';
+import type { Message as TMessage } from '@/utils/db';
 
 /**
  * Validation for message

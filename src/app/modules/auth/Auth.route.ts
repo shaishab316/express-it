@@ -3,8 +3,8 @@ import { AuthControllers } from './Auth.controller';
 import { AuthValidations } from './Auth.validation';
 import { UserControllers } from '../user/User.controller';
 import { UserValidations } from '../user/User.validation';
-import purifyRequest from '../../middlewares/purifyRequest';
-import auth from '../../middlewares/auth';
+import purifyRequest from '@/app/middlewares/purifyRequest';
+import auth from '@/app/middlewares/auth';
 import {
   otpVerifyRateLimiter,
   forgotPasswordRateLimiter,

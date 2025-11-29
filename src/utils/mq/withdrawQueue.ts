@@ -1,10 +1,10 @@
-import { TWithdrawArgs } from '../../app/modules/payment/Payment.interface';
-import config from '../../config';
+import { TWithdrawArgs } from '@/app/modules/payment/Payment.interface';
+import config from '@/config';
 import Queue from 'bull';
-import { prisma } from '../db';
+import { prisma } from '@/utils/db';
 import ora from 'ora';
 import chalk from 'chalk';
-import { stripe } from '../../app/modules/payment/Payment.utils';
+import { stripe } from '@/app/modules/payment/Payment.utils';
 
 /**
  * Withdraw queue

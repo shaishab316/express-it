@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { createLogger, format, transports } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import config from '../../config';
+import config from '@/config';
 import stripAnsi from 'strip-ansi';
 import path from 'path';
 

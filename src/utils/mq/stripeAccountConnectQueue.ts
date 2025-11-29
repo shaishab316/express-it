@@ -1,8 +1,8 @@
 import Queue from 'bull';
-import config from '../../config';
+import config from '@/config';
 import { prisma } from '../db';
 import chalk from 'chalk';
-import { stripe } from '../../app/modules/payment/Payment.utils';
+import { stripe } from '@/app/modules/payment/Payment.utils';
 import { errorLogger } from '../logger';
 import ora from 'ora';
 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TRoutes } from '../../types/route';
+import { TRoutes } from '@/types/route';
 
 /**
  * Injects routes into a router

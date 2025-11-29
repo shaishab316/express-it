@@ -1,15 +1,15 @@
 import jwt from 'jsonwebtoken';
-import config from '../../../config';
-import ServerError from '../../../errors/ServerError';
+import config from '@/config';
+import ServerError from '@/errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import { errorLogger } from '../../../utils/logger';
+import { errorLogger } from '@/utils/logger';
 import chalk from 'chalk';
 import bcrypt from 'bcryptjs';
-import { enum_decode } from '../../../utils/transform/enum';
-import { TToken, TTokenPayload } from '../../../types/auth.types';
+import { enum_decode } from '@/utils/transform/enum';
+import { TToken, TTokenPayload } from '@/types/auth.types';
 import rateLimit from 'express-rate-limit';
 import ms from 'ms';
-import { formatError } from '../../middlewares/globalErrorHandler';
+import { formatError } from '@/app/middlewares/globalErrorHandler';
 
 /**
  * Create a token

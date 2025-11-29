@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ChatControllers } from './Chat.controller';
-import purifyRequest from '../../middlewares/purifyRequest';
+import purifyRequest from '@/app/middlewares/purifyRequest';
 import { ChatValidations } from './Chat.validation';
 import { QueryValidations } from '../query/Query.validation';
 

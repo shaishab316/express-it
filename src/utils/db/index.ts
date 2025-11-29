@@ -1,8 +1,8 @@
-import { PrismaClient } from '../../../prisma/client.js';
+import { PrismaClient } from '@/../prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
-import config from '../../config';
-export * from '../../../prisma/client.js';
+import config from '@/config';
+export * from '@/../prisma/client.js';
 
 /**
  * Prisma Client instance

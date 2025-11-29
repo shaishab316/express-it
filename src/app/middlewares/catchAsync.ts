@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-import serveResponse, {
-  TServeResponse,
-} from '../../utils/server/serveResponse';
+import serveResponse, { TServeResponse } from '@/utils/server/serveResponse';
 
 type AsyncHandler<T = any> = (
   req: Request<any, any, any, any>,

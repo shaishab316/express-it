@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import type z from 'zod';
-import type { TServeResponse } from '../../../utils/server/serveResponse';
+import type { TServeResponse } from '@/utils/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
-import { formatError } from '../../middlewares/globalErrorHandler';
+import { formatError } from '@/app/middlewares/globalErrorHandler';
 import chalk from 'chalk';
-import { errorLogger } from '../../../utils/logger';
+import { errorLogger } from '@/utils/logger';
 
 /**
  * Catch Async Socket Handler

@@ -2,7 +2,7 @@
 import chalk from 'chalk';
 import cron from 'node-cron';
 import ora from 'ora';
-import { prisma } from '../../../utils/db';
+import { prisma } from '@/utils/db';
 
 export const subscriptionExpireJob = () => {
   console.log(chalk.green('✔ Subscription expiration job started'));

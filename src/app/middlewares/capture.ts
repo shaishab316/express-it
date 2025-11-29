@@ -1,11 +1,11 @@
 import type { Express, Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import multer, { FileFilterCallback, StorageEngine } from 'multer';
-import ServerError from '../../errors/ServerError';
+import ServerError from '@/errors/ServerError';
 import catchAsync from './catchAsync';
-import { errorLogger } from '../../utils/logger';
+import { errorLogger } from '@/utils/logger';
 import chalk from 'chalk';
-import { json } from '../../utils/transform/json';
+import { json } from '@/utils/transform/json';
 import path from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';

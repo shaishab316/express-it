@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { TransactionControllers } from './Transaction.controller';
-import purifyRequest from '../../middlewares/purifyRequest';
+import purifyRequest from '@/app/middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 
 const all = Router();

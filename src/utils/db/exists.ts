@@ -1,5 +1,5 @@
 import { prisma } from '.';
-import type { TModels } from '../../types/db';
+import type { TModels } from '@/types/db';
 
 /**
  * Check if a document exists in the given model.

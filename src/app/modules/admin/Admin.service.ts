@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import ora from 'ora';
-import config from '../../../config';
-import { prisma } from '../../../utils/db';
+import config from '@/config';
+import { prisma } from '@/utils/db';
 import { hashPassword } from '../auth/Auth.utils';
 import { UserServices } from '../user/User.service';
 

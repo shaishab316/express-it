@@ -1,14 +1,14 @@
 import { UserServices } from './User.service';
-import catchAsync from '../../middlewares/catchAsync';
+import catchAsync from '@/app/middlewares/catchAsync';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
-import { prisma, User as TUser } from '../../../utils/db';
-import { enum_decode } from '../../../utils/transform/enum';
-import { capitalize } from '../../../utils/transform/capitalize';
+import { prisma, User as TUser } from '@/utils/db';
+import { enum_decode } from '@/utils/transform/enum';
+import { capitalize } from '@/utils/transform/capitalize';
 import { stripe } from '../payment/Payment.utils';
-import ServerError from '../../../errors/ServerError';
-import stripeAccountConnectQueue from '../../../utils/mq/stripeAccountConnectQueue';
-import config from '../../../config';
+import ServerError from '@/errors/ServerError';
+import stripeAccountConnectQueue from '@/utils/mq/stripeAccountConnectQueue';
+import config from '@/config';
 import { userSelfOmit } from './User.constant';
 
 /**

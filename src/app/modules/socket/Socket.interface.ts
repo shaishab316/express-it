@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import type { Namespace, Socket } from 'socket.io';
-import { type User as TUser } from '../../../utils/db';
+import { type User as TUser } from '@/utils/db';
 import { userDefaultOmit } from '../user/User.constant';
 
 /**

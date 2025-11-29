@@ -3,19 +3,19 @@ import {
   userSearchableFields as searchFields,
   userSelfOmit,
 } from './User.constant';
-import { EUserRole, Prisma, prisma, User as TUser } from '../../../utils/db';
-import { TPagination } from '../../../utils/server/serveResponse';
-import deleteFilesQueue from '../../../utils/mq/deleteFilesQueue';
+import { EUserRole, Prisma, prisma, User as TUser } from '@/utils/db';
+import { TPagination } from '@/utils/server/serveResponse';
+import deleteFilesQueue from '@/utils/mq/deleteFilesQueue';
 import type { TUserEdit } from './User.interface';
-import ServerError from '../../../errors/ServerError';
+import ServerError from '@/errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { hashPassword } from '../auth/Auth.utils';
-import { generateOTP } from '../../../utils/crypto/otp';
-import emailQueue from '../../../utils/mq/emailQueue';
-import { errorLogger } from '../../../utils/logger';
-import { emailTemplate } from '../../../templates/emailTemplate';
-import config from '../../../config';
-import stripeAccountConnectQueue from '../../../utils/mq/stripeAccountConnectQueue';
+import { generateOTP } from '@/utils/crypto/otp';
+import emailQueue from '@/utils/mq/emailQueue';
+import { errorLogger } from '@/utils/logger';
+import { emailTemplate } from '@/templates/emailTemplate';
+import config from '@/config';
+import stripeAccountConnectQueue from '@/utils/mq/stripeAccountConnectQueue';
 
 /**
  * User services

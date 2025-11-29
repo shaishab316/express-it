@@ -1,6 +1,6 @@
 import Queue from 'bull';
-import config from '../../config';
-import type { TSendMail } from '../../types/utils.types';
+import config from '@/config';
+import type { TSendMail } from '@/types/utils.types';
 import { sendEmail } from '../sendMail';
 
 /**

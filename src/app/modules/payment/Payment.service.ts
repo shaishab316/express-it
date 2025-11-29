@@ -1,8 +1,8 @@
 import { StatusCodes } from 'http-status-codes';
-import ServerError from '../../../errors/ServerError';
+import ServerError from '@/errors/ServerError';
 import { TWithdrawArgs } from './Payment.interface';
-import stripeAccountConnectQueue from '../../../utils/mq/stripeAccountConnectQueue';
-import withdrawQueue from '../../../utils/mq/withdrawQueue';
+import stripeAccountConnectQueue from '@/utils/mq/stripeAccountConnectQueue';
+import withdrawQueue from '@/utils/mq/withdrawQueue';
 
 /**
  * Payment Services

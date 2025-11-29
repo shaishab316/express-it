@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { SubscriptionControllers } from './Subscription.controller';
 import { SubscriptionValidations } from './Subscription.validation';
-import purifyRequest from '../../middlewares/purifyRequest';
+import purifyRequest from '@/app/middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
-import auth from '../../middlewares/auth';
+import auth from '@/app/middlewares/auth';
 
 const admin = Router();
 {

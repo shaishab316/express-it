@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 import { Server as IOServer, Namespace } from 'socket.io';
-import config from '../../../config';
+import config from '@/config';
 import { SocketRoutes } from './Socket.route';
 import auth from './Socket.middleware';
 import { TAuthenticatedSocket } from './Socket.interface';
-import { errorLogger, logger } from '../../../utils/logger';
+import { errorLogger, logger } from '@/utils/logger';
 import chalk from 'chalk';
 import ora from 'ora';
-import { TServer } from '../../../types/utils.types';
+import { TServer } from '@/types/utils.types';
 
 type OnlineMap = Record<string, Set<string>>;
 

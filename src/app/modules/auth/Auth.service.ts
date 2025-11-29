@@ -6,18 +6,18 @@ import type {
   TUserLogin,
 } from './Auth.interface';
 import { encodeToken, hashPassword, verifyPassword } from './Auth.utils';
-import { prisma, User as TUser } from '../../../utils/db';
-import ServerError from '../../../errors/ServerError';
+import { prisma, User as TUser } from '@/utils/db';
+import ServerError from '@/errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import config from '../../../config';
-import emailQueue from '../../../utils/mq/emailQueue';
-import { emailTemplate } from '../../../templates/emailTemplate';
-import { errorLogger } from '../../../utils/logger';
+import config from '@/config';
+import emailQueue from '@/utils/mq/emailQueue';
+import { emailTemplate } from '@/templates/emailTemplate';
+import { errorLogger } from '@/utils/logger';
 import ms from 'ms';
 import { Response } from 'express';
-import { generateOTP, validateOTP } from '../../../utils/crypto/otp';
+import { generateOTP, validateOTP } from '@/utils/crypto/otp';
 import { userSelfOmit } from '../user/User.constant';
-import { TToken } from '../../../types/auth.types';
+import { TToken } from '@/types/auth.types';
 
 /**
  * Authentication services

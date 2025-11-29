@@ -3,19 +3,19 @@ import { ErrorRequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import chalk from 'chalk';
 import { ZodError } from 'zod';
-import config from '../../config';
-import ServerError from '../../errors/ServerError';
-import handleZodError from '../../errors/handleZodError';
-import { errorLogger } from '../../utils/logger';
-import type { TErrorHandler, TErrorMessage } from '../../types/errors';
+import config from '@/config';
+import ServerError from '@/errors/ServerError';
+import handleZodError from '@/errors/handleZodError';
+import { errorLogger } from '@/utils/logger';
+import type { TErrorHandler, TErrorMessage } from '@/types/errors';
 import multer from 'multer';
-import handleMulterError from '../../errors/handleMulterError';
-import { Prisma } from '../../utils/db';
+import handleMulterError from '@/errors/handleMulterError';
+import { Prisma } from '@/utils/db';
 import {
   handlePrismaRequestError,
   handlePrismaValidationError,
-} from '../../errors/handlePrismaErrors';
-import deleteFilesQueue from '../../utils/mq/deleteFilesQueue';
+} from '@/errors/handlePrismaErrors';
+import deleteFilesQueue from '@/utils/mq/deleteFilesQueue';
 
 /**
  * Default error handler

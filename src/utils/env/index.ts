@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import fs from 'fs';
-import { envPath } from '../../config/configure';
+import { envPath } from '@/config/configure';
 import chalk from 'chalk';
 
 /**

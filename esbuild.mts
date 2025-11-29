@@ -14,6 +14,9 @@ await build({
   outfile: 'dist/server.js',
   sourcemap: false,
   minify: true,
+  alias: {
+    '@': 'src',
+  },
   plugins: [nodeExternalsPlugin()],
 });
 

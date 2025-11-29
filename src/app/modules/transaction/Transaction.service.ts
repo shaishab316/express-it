@@ -1,6 +1,6 @@
-import { Prisma, Transaction as TTransaction } from '../../../utils/db';
-import { prisma } from '../../../utils/db';
-import { TPagination } from '../../../utils/server/serveResponse';
+import { Prisma, Transaction as TTransaction } from '@/utils/db';
+import { prisma } from '@/utils/db';
+import { TPagination } from '@/utils/server/serveResponse';
 import { TList } from '../query/Query.interface';
 import { transactionSearchableFields as searchableFields } from './Transaction.constant';
 

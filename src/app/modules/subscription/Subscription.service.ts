@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
-import ServerError from '../../../errors/ServerError';
+import ServerError from '@/errors/ServerError';
 import { stripe, stripWebhookEventMap } from '../payment/Payment.utils';
-import config from '../../../config';
+import config from '@/config';
 import chalk from 'chalk';
 import {
   TGetAvailableSubscriptions,
@@ -10,16 +10,16 @@ import {
   TSubscriptionEdit,
   TUserSubscriptionMetadata,
 } from './Subscription.interface';
-import { Prisma, User as TUser } from '../../../utils/db';
+import { Prisma, User as TUser } from '@/utils/db';
 import {
   subscriptionSearchableFields as searchableFields,
   subscriptionIntervalMap,
   subscriptionOmit,
 } from './Subscription.constant';
-import { prisma } from '../../../utils/db';
-import { logger } from '../../../utils/logger';
-import env from '../../../utils/env';
-import { TPagination } from '../../../utils/server/serveResponse';
+import { prisma } from '@/utils/db';
+import { logger } from '@/utils/logger';
+import env from '@/utils/env';
+import { TPagination } from '@/utils/server/serveResponse';
 
 export const SubscriptionServices = {
   async createSubscription(subscriptionData: TSubscriptionCreate) {

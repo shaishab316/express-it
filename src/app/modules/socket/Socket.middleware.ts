@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { decodeToken } from '../auth/Auth.utils';
-import { prisma } from '../../../utils/db';
-import ServerError from '../../../errors/ServerError';
+import { prisma } from '@/utils/db';
+import ServerError from '@/errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { userDefaultOmit } from '../user/User.constant';
 import { TAuthenticatedSocket } from './Socket.interface';

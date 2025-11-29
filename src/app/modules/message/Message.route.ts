@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import purifyRequest from '../../middlewares/purifyRequest';
+import purifyRequest from '@/app/middlewares/purifyRequest';
 import { MessageValidations } from './Message.validation';
 import { MessageControllers } from './Message.controller';
 import { QueryValidations } from '../query/Query.validation';

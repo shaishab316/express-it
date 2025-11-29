@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { UserControllers } from './User.controller';
-import purifyRequest from '../../middlewares/purifyRequest';
+import purifyRequest from '@/app/middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 import { UserValidations } from './User.validation';
-import capture from '../../middlewares/capture';
+import capture from '@/app/middlewares/capture';
 import { AuthControllers } from '../auth/Auth.controller';
 import { changePasswordRateLimiter } from '../auth/Auth.utils';
 
