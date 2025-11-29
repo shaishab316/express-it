@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import multer from 'multer';
-import { createErrorMessage } from '../app/middlewares/globalErrorHandler';
+import { createErrorMessage } from '@/middlewares/globalErrorHandler';
 
 const handleMulterError = ({ code, message }: multer.MulterError) => {
   return {

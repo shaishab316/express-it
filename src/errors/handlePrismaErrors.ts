@@ -1,10 +1,10 @@
 import { StatusCodes } from 'http-status-codes';
-import { Prisma } from '../utils/db';
+import { Prisma } from '@/utils/db';
 import {
   createErrorMessage,
   defaultError,
-} from '../app/middlewares/globalErrorHandler';
-import { TErrorHandler } from '../types/errors';
+} from '@/middlewares/globalErrorHandler';
+import { TErrorHandler } from '@/types/errors';
 
 export const handlePrismaRequestError = (
   error: Prisma.PrismaClientKnownRequestError,

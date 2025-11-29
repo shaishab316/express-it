@@ -1,5 +1,5 @@
 import { AuthServices } from './Auth.service';
-import catchAsync from '@/app/middlewares/catchAsync';
+import catchAsync from '@/middlewares/catchAsync';
 import { verifyPassword } from './Auth.utils';
 import ServerError from '@/errors/ServerError';
 import { StatusCodes } from 'http-status-codes';

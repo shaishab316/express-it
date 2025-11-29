@@ -9,7 +9,7 @@ import { enum_decode } from '@/utils/transform/enum';
 import { TToken, TTokenPayload } from '@/types/auth.types';
 import rateLimit from 'express-rate-limit';
 import ms from 'ms';
-import { formatError } from '@/app/middlewares/globalErrorHandler';
+import { formatError } from '@/middlewares/globalErrorHandler';
 
 /**
  * Create a token

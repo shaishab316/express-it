@@ -1,16 +1,16 @@
 import { Router } from 'express';
-import auth from '../app/middlewares/auth';
-import { AdminRoutes } from '../app/modules/admin/Admin.route';
-import { AuthRoutes } from '../app/modules/auth/Auth.route';
-import { UserRoutes } from '../app/modules/user/User.route';
-import { injectRoutes } from '../utils/router/injectRouter';
-import { ChatRoutes } from '../app/modules/chat/Chat.route';
-import { MessageRoutes } from '../app/modules/message/Message.route';
-import { PaymentRoutes } from '../app/modules/payment/Payment.route';
-import capture from '../app/middlewares/capture';
-import catchAsync from '../app/middlewares/catchAsync';
-import { SubscriptionRoutes } from '../app/modules/subscription/Subscription.route';
-import { TransactionRoutes } from '../app/modules/transaction/Transaction.route';
+import auth from '@/middlewares/auth';
+import { AdminRoutes } from '@/modules/admin/Admin.route';
+import { AuthRoutes } from '@/modules/auth/Auth.route';
+import { UserRoutes } from '@/modules/user/User.route';
+import { injectRoutes } from '@/utils/router/injectRouter';
+import { ChatRoutes } from '@/modules/chat/Chat.route';
+import { MessageRoutes } from '@/modules/message/Message.route';
+import { PaymentRoutes } from '@/modules/payment/Payment.route';
+import capture from '@/middlewares/capture';
+import catchAsync from '@/middlewares/catchAsync';
+import { SubscriptionRoutes } from '@/modules/subscription/Subscription.route';
+import { TransactionRoutes } from '@/modules/transaction/Transaction.route';
 
 const appRouter = Router();
 

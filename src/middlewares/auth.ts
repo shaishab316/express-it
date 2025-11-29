@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { StatusCodes } from 'http-status-codes';
 import ServerError from '@/errors/ServerError.js';
-import { decodeToken } from '@/app/modules/auth/Auth.utils';
+import { decodeToken } from '@/modules/auth/Auth.utils';
 import catchAsync from './catchAsync';
 import { EUserRole, prisma, User as TUser } from '@/utils/db';
 import config from '@/config';

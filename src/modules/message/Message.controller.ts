@@ -1,4 +1,4 @@
-import catchAsync from '@/app/middlewares/catchAsync';
+import catchAsync from '@/middlewares/catchAsync';
 import { MessageServices } from './Message.service';
 
 /**

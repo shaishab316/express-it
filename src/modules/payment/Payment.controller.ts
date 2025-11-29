@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import config from '@/config';
-import catchAsync from '@/app/middlewares/catchAsync';
+import catchAsync from '@/middlewares/catchAsync';
 import { stripe, stripWebhookEventMap } from './Payment.utils';
 import { StatusCodes } from 'http-status-codes';
 import { errorLogger } from '@/utils/logger';

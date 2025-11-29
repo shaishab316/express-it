@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import catchAsync from '@/app/middlewares/catchAsync';
+import catchAsync from '@/middlewares/catchAsync';
 import { SubscriptionServices } from './Subscription.service';
 import ServerError from '@/errors/ServerError';
 

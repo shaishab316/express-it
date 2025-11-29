@@ -1,6 +1,6 @@
 import Queue from 'bull';
 import config from '@/config';
-import { deleteFiles } from '@/app/middlewares/capture';
+import { deleteFiles } from '@/middlewares/capture';
 
 /**
  * Delete files queue

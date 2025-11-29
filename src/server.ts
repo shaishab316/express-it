@@ -1,7 +1,7 @@
 process.stdout.write('\x1Bc'); //? clear console
-import startServer from './utils/server/startServer';
-import { SocketServices } from './app/modules/socket/Socket.service';
-import { subscriptionExpireJob } from './app/modules/subscription/Subscription.job';
+import startServer from '@/utils/server/startServer';
+import { SocketServices } from '@/modules/socket/Socket.service';
+import { subscriptionExpireJob } from '@/modules/subscription/Subscription.job';
 
 /**
  * server initialization

@@ -1,4 +1,4 @@
-import catchAsync from '@/app/middlewares/catchAsync';
+import catchAsync from '@/middlewares/catchAsync';
 import { ChatServices } from './Chat.service';
 
 /**
