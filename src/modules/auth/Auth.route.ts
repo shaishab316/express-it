@@ -28,12 +28,26 @@ free.post(
   AuthControllers.accountVerify,
 );
 
-free.post(
-  '/login',
-  loginRateLimiter,
-  purifyRequest(AuthValidations.login),
-  AuthControllers.login,
-);
+{
+  free.post(
+    '/login',
+    loginRateLimiter,
+    purifyRequest(AuthValidations.login),
+    AuthControllers.login,
+  );
+
+  free.post(
+    '/facebook-login',
+    purifyRequest(AuthValidations.facebookLogin),
+    AuthControllers.facebookLogin,
+  );
+
+  free.post(
+    '/google-login',
+    purifyRequest(AuthValidations.googleLogin),
+    AuthControllers.googleLogin,
+  );
+}
 
 free.post(
   '/account-verify/otp-send',
