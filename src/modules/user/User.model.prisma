@@ -15,7 +15,7 @@ model User {
 
   //! profile
   avatar String  @default("/images/placeholder.png")
-  name   String  @default("Getavails User")
+  name   String  @default("Unknown User")
   gender EGender @default(OTHER)
   //! end
 

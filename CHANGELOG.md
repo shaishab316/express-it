@@ -1,3 +1,12 @@
+# [1.1.0](https://github.com/shaishab316/express-it/compare/v1.0.0...v1.1.0) (2025-11-29)
+
+
+### Features
+
+* add alias for src directory and update import paths across the application ([ed218e5](https://github.com/shaishab316/express-it/commit/ed218e52e1ca0878f6d9f611948ae15ff67c07ae))
+* implement subscription management module with CRUD operations ([47996e5](https://github.com/shaishab316/express-it/commit/47996e57cd821c93bb0d2c48f91d3b1d03afe073))
+* **payment:** implement payment processing with Stripe integration, including withdrawal functionality and webhook handling ([0341ebd](https://github.com/shaishab316/express-it/commit/0341ebdc3d84838451ef1c9a525d31f65d72d0d0))
+
 # 1.0.0 (2025-11-01)
 
 
