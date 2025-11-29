@@ -1,11 +1,13 @@
 /* eslint-disable no-useless-escape */
 import './configure';
-import env from '../utils/env';
+import env from '@/utils/env';
 import type ms from 'ms';
 import { genSecret } from '../utils/crypto/genSecret';
 import path from 'path';
 import { enum_decode } from '../utils/transform/enum';
 import { capitalize } from '../utils/transform/capitalize';
+import Stripe from 'stripe';
+import { stripePaymentMethods } from '@/modules/payment/Payment.constant';
 
 export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
 
@@ -74,20 +76,47 @@ const config = {
   },
 
   url: {
-    database: env('database url', ``, {
-      up: 'Database info - start',
-      regex: '',
-    }),
+    database: env(
+      'database url',
+      `postgresql://admin:admin@localhost:5432/${db_name}?schema=public`,
+      {
+        up: 'Database info - start',
+        regex: '^postgresql://.*',
+      },
+    ),
     redis: env('redis url', `redis://localhost:6379`, {
-      regex: '',
+      regex: '^redis://.*',
     }),
     ui: env('ui url', `http://localhost:${port}`, {
       regex: '^https?:\\/\\/.*$|^$',
     }),
     href: env('href url', `http://localhost:${port}`, {
       regex: '^https?:\\/\\/.*$|^$',
-      down: 'Database info - end',
     }),
+    payment: {
+      webhook_endpoint: env(
+        'payment webhook endpoint',
+        `http://localhost:${port}/api/v1/payments/stripe/webhook`,
+        {
+          regex: '^https?:\\/\\/.*\\/payments\\/stripe\\/webhook$|^$',
+        },
+      ),
+      success_callback: env(
+        'payment success url',
+        `http://localhost:${port}/payments/success-callback`,
+        {
+          regex: '^https?:\\/\\/.*$|^$',
+        },
+      ),
+      cancel_callback: env(
+        'payment failure url',
+        `http://localhost:${port}/payments/cancel-callback`,
+        {
+          regex: '^https?:\\/\\/.*$|^$',
+          down: 'Urls - end',
+        },
+      ),
+    },
   },
 
   bcrypt_salt_rounds: env('bcrypt salt rounds', 10, {
@@ -152,6 +181,38 @@ const config = {
       down: 'Admin info - end',
     }),
   },
+
+  payment: {
+    currency: env('payment currency', 'usd', {
+      regex: '^[a-z]{3}$',
+      up: 'Payment info - start',
+    }),
+    stripe: {
+      secret_key: env('stripe secret key', `sk_test_${genSecret(24)}`, {
+        regex: `^sk_${isDevelopment ? 'test' : 'live'}_[0-9a-zA-Z]{24,}$`,
+      }),
+      web_hook_secret: process.env.STRIPE_WEB_HOOK_SECRET ?? '',
+      webhook_endpoint: env(
+        'payment webhook endpoint',
+        `http://localhost:${port}/api/v1/payments/stripe/webhook`,
+        {
+          regex: '^https?:\\/\\/.*\\/payments\\/stripe\\/webhook$|^$',
+        },
+      ),
+      methods: Array.from(
+        new Set(
+          env<Stripe.Checkout.SessionCreateParams.PaymentMethodType[]>(
+            'payment methods',
+            ['card'],
+            {
+              regex: `^(${stripePaymentMethods.join('|')})(,(${stripePaymentMethods.join('|')}))*$`,
+              down: 'Payment info - end',
+            },
+          ),
+        ),
+      ),
+    },
+  },
 };
 
-export default config;
+export default config as Readonly<typeof config>;

@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: express-it
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - express-it_postgres:/var/lib/postgresql/data
     restart: unless-stopped
@@ -16,7 +16,7 @@ services:
     image: redis:7-alpine
     container_name: redis-express-it
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - express-it_redis:/data
     restart: unless-stopped
@@ -27,7 +27,7 @@ services:
     environment:
       - REDIS_HOSTS=local:redis:6379
     ports:
-      - "8081:8081"
+      - "8082:8081"
     depends_on:
       - redis
     restart: unless-stopped

@@ -1,6 +1,6 @@
 import cors from 'cors';
 import express from 'express';
-import globalErrorHandler from './app/middlewares/globalErrorHandler';
+import globalErrorHandler from '@/middlewares/globalErrorHandler';
 import RoutesV1 from './routes/v1';
 import { Morgan } from './utils/logger/morgen';
 import cookieParser from 'cookie-parser';

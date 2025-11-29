@@ -1,3 +1,5 @@
-import { AdminServices } from '../src/app/modules/admin/Admin.service';
+import { AdminServices } from '../src/modules/admin/Admin.service';
 
-AdminServices.seed();
+await AdminServices.seed();
+
+process.exit(0);

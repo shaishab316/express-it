@@ -1,15 +1,23 @@
-/* eslint-disable no-console */
-import chalk from 'chalk';
-import { PrismaClient } from '../../../prisma';
-export * from '../../../prisma';
+import { PrismaClient } from '@/../prisma/client/client.js';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
+import config from '@/config';
+export * from '@/../prisma/client/client.js';
 
-export const prisma = new PrismaClient();
+/**
+ * Prisma Client instance
+ */
+export const prisma = new PrismaClient({
+  adapter: new PrismaPg(
+    new pg.Pool({
+      connectionString: config.url.database,
+    }),
+  ),
+});
 
 /** Connect to the database */
 export async function connectDB() {
-  console.log(chalk.yellow('🚀 Database connecting....'));
   await prisma.$connect();
-  console.log(chalk.green('🚀 Database connected successfully'));
 
   return () => prisma.$disconnect();
 }

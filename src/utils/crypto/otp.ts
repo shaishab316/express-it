@@ -1,7 +1,7 @@
 import { totp } from 'otplib';
-import config from '../../config';
+import config from '@/config';
 import ms from 'ms';
-import { TGenerateOTP, TValidateOTP } from '../../types/utils.types';
+import { TGenerateOTP, TValidateOTP } from '@/types/utils.types';
 
 totp.options = {
   digits: config?.otp?.length ?? 6,

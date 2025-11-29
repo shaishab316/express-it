@@ -1,7 +1,13 @@
-import path from 'path';
-import type { PrismaConfig } from 'prisma';
 import './src/config/configure';
+import path from 'path';
+import { defineConfig, env } from 'prisma/config';
 
-export default {
-  schema: path.resolve('src/app/modules'),
-} satisfies PrismaConfig;
+export default defineConfig({
+  schema: path.resolve('src/modules'),
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+  migrations: {
+    path: path.resolve('prisma/migrations'),
+  },
+});
