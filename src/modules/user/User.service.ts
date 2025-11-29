@@ -58,7 +58,7 @@ export const UserServices = {
     });
 
     // Check if verified user already exists
-    if (existingUser?.is_verified) {
+    if (!payload.is_admin && existingUser?.is_verified) {
       throw new ServerError(
         StatusCodes.CONFLICT,
         `${existingUser.role} already exists with this ${email} email.`,
@@ -108,7 +108,7 @@ export const UserServices = {
     }
 
     // Send verification OTP email
-    if (user.email) {
+    if (!user.is_verified && user.email) {
       const otp = generateOTP({
         tokenType: 'access_token',
         otpId: user.id + user.otp_id,
@@ -209,7 +209,7 @@ export const UserServices = {
     });
 
     return Object.fromEntries(
-      counts.map(({ role, _count }) => [role, _count._all]),
+      counts.map(({ role, _count }: any) => [role, _count._all]),
     );
   },
 
