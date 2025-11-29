@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './src/config/configure';
 import path from 'path';
 import { defineConfig, env } from 'prisma/config';
 
