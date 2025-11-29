@@ -20,6 +20,7 @@ import { prisma } from '@/utils/db';
 import { logger } from '@/utils/logger';
 import env from '@/utils/env';
 import { TPagination } from '@/utils/server/serveResponse';
+import { Stripe } from 'stripe';
 
 export const SubscriptionServices = {
   async createSubscription(subscriptionData: TSubscriptionCreate) {
@@ -323,11 +324,16 @@ export const SubscriptionServices = {
 
     let customerId = user.stripe_customer_id;
 
+    const customerPayload: Stripe.CustomerCreateParams = {
+      name: user.name,
+    };
+
+    if (user.email) {
+      customerPayload.email = user.email;
+    }
+
     if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
-      });
+      const customer = await stripe.customers.create(customerPayload);
 
       customerId = customer.id;
     } else {
@@ -336,10 +342,7 @@ export const SubscriptionServices = {
       } catch (error: any) {
         if (error.statusCode === 404) {
           // Customer was deleted in Stripe → re-create
-          const newCustomer = await stripe.customers.create({
-            email: user.email,
-            name: user.name,
-          });
+          const newCustomer = await stripe.customers.create(customerPayload);
 
           customerId = newCustomer.id;
         } else {

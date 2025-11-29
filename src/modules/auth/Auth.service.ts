@@ -2,11 +2,13 @@
 import type {
   TAccountVerify,
   TAccountVerifyOtpSend,
+  TFacebookLogin,
+  TGoogleLogin,
   TResetPassword,
   TUserLogin,
 } from './Auth.interface';
 import { encodeToken, hashPassword, verifyPassword } from './Auth.utils';
-import { prisma, User as TUser } from '@/utils/db';
+import { prisma, type User as TUser } from '@/utils/db';
 import ServerError from '@/errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import config from '@/config';
@@ -18,6 +20,9 @@ import { Response } from 'express';
 import { generateOTP, validateOTP } from '@/utils/crypto/otp';
 import { userSelfOmit } from '../user/User.constant';
 import { TToken } from '@/types/auth.types';
+import { facebookUser, googleUser } from './Auth.lib';
+import { downloadFile } from '@/middlewares/capture';
+import { UserServices } from '../user/User.service';
 
 /**
  * Authentication services
@@ -27,7 +32,7 @@ export const AuthServices = {
    * Login user using email and password
    */
   async login({ password, email }: TUserLogin) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { email },
       select: {
         id: true,
@@ -41,6 +46,13 @@ export const AuthServices = {
 
     if (!user) {
       throw new ServerError(StatusCodes.NOT_FOUND, "User doesn't exist");
+    }
+
+    if (!user.password) {
+      throw new ServerError(
+        StatusCodes.UNAUTHORIZED,
+        'Please login using social login',
+      );
     }
 
     if (!(await verifyPassword(password, user.password))) {
@@ -121,7 +133,7 @@ export const AuthServices = {
    * this function sends otp to user
    */
   async accountVerifyOtpSend({ email }: TAccountVerifyOtpSend) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { email },
       select: {
         id: true,
@@ -160,7 +172,7 @@ export const AuthServices = {
    * this function sends otp to user
    */
   async forgotPassword({ email }: TAccountVerifyOtpSend) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { email },
       select: {
         id: true,
@@ -196,7 +208,7 @@ export const AuthServices = {
     otp,
     token_type = 'access_token',
   }: TAccountVerify & { token_type: TToken }) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { email },
       select: {
         id: true,
@@ -250,7 +262,8 @@ export const AuthServices = {
    * this function resets password
    */
   async resetPassword(user: TUser, { password }: TResetPassword) {
-    if (await verifyPassword(password, user.password)) {
+    //? prevent reusing old password
+    if (user.password && (await verifyPassword(password, user.password))) {
       throw new ServerError(
         StatusCodes.UNAUTHORIZED,
         'You cannot use old password',
@@ -266,5 +279,63 @@ export const AuthServices = {
       where: { id: user.id },
       omit: userSelfOmit[user.role],
     });
+  },
+
+  async facebookLogin({ access_token, role }: TFacebookLogin) {
+    try {
+      const payload = await facebookUser(access_token);
+
+      let user = await prisma.user.findFirst({
+        where: { fb_id: payload.id },
+        omit: userSelfOmit[role],
+      });
+
+      if (!user) {
+        user = await UserServices.register({
+          fb_id: payload.id,
+          avatar: await downloadFile({
+            url: payload?.picture?.data?.url,
+            fileType: 'images',
+          }),
+          role,
+        });
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof Error)
+        throw new ServerError(StatusCodes.UNAUTHORIZED, error.message);
+
+      throw error;
+    }
+  },
+
+  async googleLogin({ access_token, role }: TGoogleLogin) {
+    try {
+      const payload = await googleUser(access_token);
+
+      let user = await prisma.user.findFirst({
+        where: { google_id: payload.id },
+        omit: userSelfOmit[role],
+      });
+
+      if (!user) {
+        user = await UserServices.register({
+          google_id: payload.id,
+          avatar: await downloadFile({
+            url: payload.picture,
+            fileType: 'images',
+          }),
+          role,
+        });
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof Error)
+        throw new ServerError(StatusCodes.UNAUTHORIZED, error.message);
+
+      throw error;
+    }
   },
 };

@@ -46,63 +46,87 @@ export const UserServices = {
   /**
    * Register user and send otp
    */
-  async register({ email, role, password, ...payload }: Omit<TUser, 'id'>) {
-    const existingUser = await prisma.user.findUnique({
+  async register({
+    email,
+    role,
+    password,
+    ...payload
+  }: Omit<Prisma.UserCreateInput, 'id'>) {
+    const existingUser = await prisma.user.findFirst({
       where: { email },
-      select: { role: true, is_verified: true }, //? skip body
+      select: { role: true, is_verified: true, id: true, otp_id: true },
     });
 
-    //? ensure user doesn't exist
-    if (existingUser?.is_verified)
+    // Check if verified user already exists
+    if (existingUser?.is_verified) {
       throw new ServerError(
         StatusCodes.CONFLICT,
         `${existingUser.role} already exists with this ${email} email.`,
       );
-
-    const user = await prisma.user.upsert({
-      where: { email },
-      update: {
-        role,
-        password: await hashPassword(password),
-        ...payload,
-      },
-      create: {
-        id: await UserServices.getNextUserId({ role }),
-        email,
-        role,
-        password: await hashPassword(password),
-        ...payload,
-      },
-      omit: {
-        ...userSelfOmit[role],
-        otp_id: false,
-        stripe_account_id: false,
-      },
-    });
-
-    if (!user.stripe_account_id) {
-      await stripeAccountConnectQueue.add({
-        user_id: user.id,
-      });
     }
 
-    try {
+    const hashedPassword = password && (await hashPassword(password));
+
+    const omitFields = {
+      ...userSelfOmit[role ?? EUserRole.USER],
+      otp_id: false,
+      stripe_account_id: false,
+    };
+
+    // Update existing unverified user or create new one
+    const user = existingUser
+      ? await prisma.user.update({
+          where: { id: existingUser.id },
+          data: { role, password: hashedPassword, ...payload },
+          omit: omitFields,
+        })
+      : await prisma.user.create({
+          data: {
+            //? Generate user id based on role
+            id: await UserServices.getNextUserId(
+              payload.is_admin
+                ? { is_admin: true }
+                : {
+                    role: role ?? EUserRole.USER,
+                  },
+            ),
+            email,
+            role,
+            password: hashedPassword,
+            ...payload,
+          },
+          omit: omitFields,
+        });
+
+    //? Queue stripe account creation if needed
+    if (!user.stripe_account_id) {
+      stripeAccountConnectQueue
+        .add({ user_id: user.id })
+        .catch(err =>
+          errorLogger.error('Failed to queue stripe account:', err),
+        );
+    }
+
+    // Send verification OTP email
+    if (user.email) {
       const otp = generateOTP({
         tokenType: 'access_token',
         otpId: user.id + user.otp_id,
       });
 
-      await emailQueue.add({
-        to: user.email,
-        subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-        html: await emailTemplate({
-          userName: user.name,
-          otp,
-          template: 'account_verify',
-        }),
-      });
-    } catch (error) {
-      if (error instanceof Error) errorLogger.error(error.message);
+      emailQueue
+        .add({
+          to: user.email,
+          subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
+          html: await emailTemplate({
+            userName: user.name,
+            otp,
+            template: 'account_verify',
+          }),
+        })
+        .catch(err =>
+          errorLogger.error('Failed to send verification email:', err),
+        );
     }
 
     return {

@@ -91,7 +91,11 @@ export const AuthControllers = {
   }),
 
   changePassword: catchAsync(async ({ user, body }) => {
-    if (!(await verifyPassword(body.oldPassword, user.password))) {
+    //? Validate old password if exists
+    if (
+      user.password &&
+      !(await verifyPassword(body.oldPassword, user.password))
+    ) {
       throw new ServerError(StatusCodes.UNAUTHORIZED, 'Incorrect password');
     }
 
@@ -129,6 +133,40 @@ export const AuthControllers = {
     return {
       message: 'AccessToken refreshed successfully!',
       data: { access_token },
+    };
+  }),
+
+  facebookLogin: catchAsync(async ({ body }, res) => {
+    const user = await AuthServices.facebookLogin(body);
+
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user.id!,
+      'access_token',
+      'refresh_token',
+    );
+
+    AuthServices.setTokens(res, { access_token, refresh_token });
+
+    return {
+      message: 'Login successfully!',
+      data: { access_token, refresh_token, user },
+    };
+  }),
+
+  googleLogin: catchAsync(async ({ body }, res) => {
+    const user = await AuthServices.googleLogin(body);
+
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user.id!,
+      'access_token',
+      'refresh_token',
+    );
+
+    AuthServices.setTokens(res, { access_token, refresh_token });
+
+    return {
+      message: 'Login successfully!',
+      data: { access_token, refresh_token, user },
     };
   }),
 };

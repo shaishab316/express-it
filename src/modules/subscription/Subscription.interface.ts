@@ -35,7 +35,7 @@ export type TUserSubscriptionMetadata = {
   purpose: 'subscription';
   user_id: string;
   user_name: string;
-  user_email: string;
+  user_email?: string | null;
   user_avatar: string;
   subscription_name: string;
   subscription_features: string;

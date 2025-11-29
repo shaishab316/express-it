@@ -8,8 +8,11 @@ import chalk from 'chalk';
 import { json } from '@/utils/transform/json';
 import path from 'path';
 import fs from 'fs/promises';
-import { existsSync } from 'fs';
+import { createWriteStream, existsSync } from 'fs';
 import ora from 'ora';
+import { v4 as uuidv4 } from 'uuid';
+import { capitalize } from '@/utils/transform/capitalize';
+import axios from 'axios';
 
 export const fileValidators = {
   images: {
@@ -312,3 +315,44 @@ export const fileExists = async (fileUrl: string): Promise<boolean> => {
     return false;
   }
 };
+
+export async function downloadFile({
+  fileType,
+  url,
+}: {
+  url?: string | null;
+  fileType: (typeof fileTypes)[number];
+}) {
+  if (!url) return;
+
+  const spinner = ora(`Downloading ${fileType} from: ${url}`).start();
+  try {
+    const fileName = `${uuidv4()}.png`;
+    const destinationPath = path.join(UPLOAD_DIR, fileType, fileName);
+
+    const response = await axios({
+      url,
+      responseType: 'stream',
+    });
+
+    const writer = createWriteStream(destinationPath);
+
+    response.data.pipe(writer);
+
+    await new Promise((resolve, reject) => {
+      writer.on('finish', () => resolve(true));
+      writer.on('error', reject);
+    });
+
+    spinner.succeed(
+      chalk.green(
+        `${capitalize(fileType)} downloaded successfully: ${destinationPath}`,
+      ),
+    );
+
+    return `/${fileType}/${fileName}`;
+  } catch (error) {
+    spinner.fail(chalk.red(`Error downloading ${fileType}`));
+    errorLogger.error(error);
+  }
+}

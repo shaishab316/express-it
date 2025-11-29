@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import { stripe } from '@/modules/payment/Payment.utils';
 import { errorLogger } from '@/utils/logger';
 import ora from 'ora';
+import { Stripe } from 'stripe';
 
 const stripeAccountConnectQueue = new Queue<{ user_id: string }>(
   'stripe-account-connect',
@@ -29,13 +30,18 @@ stripeAccountConnectQueue.process(async ({ data }) => {
     }).start();
 
     try {
-      const stripeAccount = await stripe.accounts.create({
+      const accountPayload: Stripe.AccountCreateParams = {
         type: 'express',
-        email: user.email,
         capabilities: {
           transfers: { requested: true },
         },
-      });
+      };
+
+      if (user.email) {
+        accountPayload.email = user.email;
+      }
+
+      const stripeAccount = await stripe.accounts.create(accountPayload);
 
       await prisma.user.update({
         where: { id: data.user_id },
