@@ -1,23 +1,14 @@
+process.stdout.write('\x1Bc'); //? clear console
 import startServer from './utils/server/startServer';
+import { SocketServices } from './app/modules/socket/Socket.service';
+import { subscriptionExpireJob } from './app/modules/subscription/Subscription.job';
 
-startServer();
-
-/*
- ! Do microservices here
-
-.then(server => {
-  //? add server plugins
-
-  //? socket plugins
-  const socketCleanup = SocketServices.init(server);
-
-  //? cleanup on process close
-  ['SIGINT', 'SIGTERM'].forEach(signal =>
-    process.once(signal, async () => {
-      socketCleanup();
-
-      server.close(() => process.exit(0));
-    }),
-  );
-});
+/**
+ * server initialization
  */
+const server = await startServer();
+
+/**
+ * Add plugins to the server
+ */
+server.addPlugins(SocketServices.init(server), subscriptionExpireJob());

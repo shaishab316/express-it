@@ -11,13 +11,13 @@ import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import config from '../../../config';
 import emailQueue from '../../../utils/mq/emailQueue';
-import { otp_send_template } from '../../../templates';
+import { emailTemplate } from '../../../templates/emailTemplate';
 import { errorLogger } from '../../../utils/logger';
 import ms from 'ms';
 import { Response } from 'express';
 import { generateOTP, validateOTP } from '../../../utils/crypto/otp';
+import { userSelfOmit } from '../user/User.constant';
 import { TToken } from '../../../types/auth.types';
-import { userDefaultOmit } from '../user/User.constant';
 
 /**
  * Authentication services
@@ -59,7 +59,7 @@ export const AuthServices = {
           await emailQueue.add({
             to: email,
             subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-            html: otp_send_template({
+            html: await emailTemplate({
               userName: user.name,
               otp,
               template: 'account_verify',
@@ -74,7 +74,7 @@ export const AuthServices = {
 
     return prisma.user.findUnique({
       where: { id: user.id },
-      omit: userDefaultOmit,
+      omit: userSelfOmit[user.role],
     });
   },
 
@@ -82,6 +82,8 @@ export const AuthServices = {
    * this function sets tokens in cookies
    */
   setTokens(res: Response, tokens: { [key in TToken]?: string }) {
+    return; // TODO: cookies disabled for testing
+
     Object.entries(tokens).forEach(([key, value]) =>
       res.cookie(key, value, {
         httpOnly: true,
@@ -146,7 +148,7 @@ export const AuthServices = {
     await emailQueue.add({
       to: email,
       subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-      html: otp_send_template({
+      html: await emailTemplate({
         userName: user.name,
         otp,
         template: 'account_verify',
@@ -178,7 +180,7 @@ export const AuthServices = {
     await emailQueue.add({
       to: email,
       subject: `Your ${config.server.name} Password Reset OTP is ⚡ ${otp} ⚡.`,
-      html: otp_send_template({
+      html: await emailTemplate({
         userName: user.name,
         otp,
         template: 'reset_password',
@@ -221,9 +223,9 @@ export const AuthServices = {
         otp_id: { increment: 1 }, //? unique otp every time
 
         is_verified: true,
-        is_active: true,
+        is_active: true, //TODO: account activation
       },
-      omit: userDefaultOmit,
+      omit: userSelfOmit[user.role],
     });
   },
 
@@ -262,7 +264,7 @@ export const AuthServices = {
 
     return prisma.user.findUnique({
       where: { id: user.id },
-      omit: userDefaultOmit,
+      omit: userSelfOmit[user.role],
     });
   },
 };

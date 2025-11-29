@@ -19,9 +19,19 @@ model User {
   gender EGender @default(OTHER)
   //! end
 
-  seen_messages Message[] @relation("SeenMessages")
+  //! payment
+  balance                 Float     @default(0)
+  stripe_customer_id      String?
+  stripe_account_id       String?
+  is_stripe_connected     Boolean   @default(false)
+  subscription_name       String?
+  subscription_expires_at DateTime?
+  //! end
+
+  seen_messages Message[]     @relation("SeenMessages")
   messages      Message[]
-  chats         Chat[]    @relation("UserChats")
+  chats         Chat[]        @relation("UserChats")
+  transactions  Transaction[]
 
   @@map("users")
 }

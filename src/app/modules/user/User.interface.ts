@@ -1,5 +1,5 @@
 import type z from 'zod';
-import type { UserValidations } from './User.validation';
+import { UserValidations } from './User.validation';
 
 export type TUserRegister = z.infer<
   typeof UserValidations.userRegister

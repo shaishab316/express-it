@@ -17,12 +17,18 @@ const avatarCapture = capture({
 
 const admin = Router();
 {
+  /**
+   * Get all users
+   */
   admin.get(
     '/',
     purifyRequest(QueryValidations.list, UserValidations.getAllUser),
     UserControllers.superGetAllUser,
   );
 
+  /**
+   * Edit user
+   */
   admin.patch(
     '/:userId/edit',
     avatarCapture,
@@ -33,6 +39,9 @@ const admin = Router();
     UserControllers.superEditProfile,
   );
 
+  /**
+   * Delete user
+   */
   admin.delete(
     '/:userId/delete',
     purifyRequest(QueryValidations.exists('userId', 'user')),
@@ -42,8 +51,14 @@ const admin = Router();
 
 const all = Router();
 {
+  /**
+   * Get user profile
+   */
   all.get('/', UserControllers.profile);
 
+  /**
+   * Edit user profile
+   */
   all.patch(
     '/edit',
     avatarCapture,
@@ -51,13 +66,33 @@ const all = Router();
     UserControllers.editProfile,
   );
 
+  /**
+   * Delete user account
+   */
   all.delete('/delete', UserControllers.deleteAccount);
 
+  /**
+   * Change user password
+   */
   all.post(
     '/change-password',
     changePasswordRateLimiter,
     purifyRequest(UserValidations.changePassword),
     AuthControllers.changePassword,
+  );
+
+  /**
+   * Connect stripe account
+   */
+  all.get('/connect-stripe', UserControllers.connectStripeAccount);
+
+  /**
+   * Get all users
+   */
+  all.get(
+    '/other-users',
+    purifyRequest(QueryValidations.list, UserValidations.getAllUser),
+    UserControllers.getAllUser,
   );
 }
 

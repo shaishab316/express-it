@@ -15,7 +15,7 @@ const auth = ({
   validators?: ((user: TUser) => void)[];
 } = {}) =>
   catchAsync(async (req, _, next) => {
-    const token = req.headers.authorization || req.cookies[token_type];
+    const token = req.headers.authorization; //Todo: || req.cookies[token_type];
 
     const id = decodeToken(token, token_type)?.uid;
 
@@ -44,7 +44,9 @@ const auth = ({
     next();
   });
 
-// Common validator function
+/**
+ * Common validator function
+ */
 function commonValidator({ is_admin, is_verified, is_active }: TUser) {
   if (is_admin) return;
 
@@ -58,8 +60,31 @@ function commonValidator({ is_admin, is_verified, is_active }: TUser) {
   }
 }
 
+/**
+ * Payment validator function
+ */
+function paymentValidator({
+  role,
+  subscription_name,
+  subscription_expires_at,
+}: TUser) {
+  if (
+    !subscription_name ||
+    !subscription_expires_at ||
+    subscription_expires_at < new Date()
+  ) {
+    throw new ServerError(
+      StatusCodes.PAYMENT_REQUIRED,
+      `Your ${role.toLowerCase()} subscription has expired. Please renew to continue accessing this feature.`,
+    );
+  }
+}
+
+// Default auth
+auth.default = auth();
+
 // Base auth without role restrictions
-auth.all = auth();
+auth.all = auth({ validators: [commonValidator] });
 
 // Admin auth
 auth.admin = auth({
@@ -87,6 +112,7 @@ Object.values(EUserRole).forEach(role => {
             );
           }
         },
+        paymentValidator,
       ],
     }),
     enumerable: true,

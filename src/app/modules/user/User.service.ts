@@ -1,11 +1,11 @@
 import type { TList } from '../query/Query.interface';
 import {
   userSearchableFields as searchFields,
-  userDefaultOmit,
+  userSelfOmit,
 } from './User.constant';
 import { EUserRole, Prisma, prisma, User as TUser } from '../../../utils/db';
 import { TPagination } from '../../../utils/server/serveResponse';
-import { deleteFile } from '../../middlewares/capture';
+import deleteFilesQueue from '../../../utils/mq/deleteFilesQueue';
 import type { TUserEdit } from './User.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
@@ -13,10 +13,17 @@ import { hashPassword } from '../auth/Auth.utils';
 import { generateOTP } from '../../../utils/crypto/otp';
 import emailQueue from '../../../utils/mq/emailQueue';
 import { errorLogger } from '../../../utils/logger';
-import { otp_send_template } from '../../../templates';
+import { emailTemplate } from '../../../templates/emailTemplate';
 import config from '../../../config';
+import stripeAccountConnectQueue from '../../../utils/mq/stripeAccountConnectQueue';
 
+/**
+ * User services
+ */
 export const UserServices = {
+  /**
+   * Get next user id
+   */
   async getNextUserId(
     where:
       | { role: EUserRole; is_admin?: never }
@@ -26,7 +33,7 @@ export const UserServices = {
 
     const user = await prisma.user.findFirst({
       where,
-      orderBy: { id: 'desc' },
+      orderBy: { created_at: 'desc' },
       select: { id: true },
     });
 
@@ -36,20 +43,30 @@ export const UserServices = {
     return `${prefix}-${currSL + 1}`;
   },
 
+  /**
+   * Register user and send otp
+   */
   async register({ email, role, password, ...payload }: Omit<TUser, 'id'>) {
     const existingUser = await prisma.user.findUnique({
       where: { email },
-      select: { role: true }, //? select only role
+      select: { role: true, is_verified: true }, //? skip body
     });
 
-    if (existingUser)
+    //? ensure user doesn't exist
+    if (existingUser?.is_verified)
       throw new ServerError(
         StatusCodes.CONFLICT,
         `${existingUser.role} already exists with this ${email} email.`,
       );
 
-    const user = await prisma.user.create({
-      data: {
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        role,
+        password: await hashPassword(password),
+        ...payload,
+      },
+      create: {
         id: await UserServices.getNextUserId({ role }),
         email,
         role,
@@ -57,11 +74,17 @@ export const UserServices = {
         ...payload,
       },
       omit: {
-        ...userDefaultOmit,
-        email: false,
+        ...userSelfOmit[role],
         otp_id: false,
+        stripe_account_id: false,
       },
     });
+
+    if (!user.stripe_account_id) {
+      await stripeAccountConnectQueue.add({
+        user_id: user.id,
+      });
+    }
 
     try {
       const otp = generateOTP({
@@ -72,7 +95,7 @@ export const UserServices = {
       await emailQueue.add({
         to: user.email,
         subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-        html: otp_send_template({
+        html: await emailTemplate({
           userName: user.name,
           otp,
           template: 'account_verify',
@@ -85,32 +108,30 @@ export const UserServices = {
     return {
       ...user,
       otp_id: undefined,
+      stripe_account_id: undefined,
     };
   },
 
   async updateUser({ user, body }: { user: Partial<TUser>; body: TUserEdit }) {
     const data: Prisma.UserUpdateInput = body;
 
-    if (body.avatar && user.avatar) await deleteFile(user.avatar);
+    if (body.avatar && user.avatar) await deleteFilesQueue.add([user.avatar]);
 
     if (body.role && body.role !== user.role)
       data.id = await this.getNextUserId({ role: body.role });
 
     return prisma.user.update({
       where: { id: user.id },
-      omit: userDefaultOmit,
+      omit: userSelfOmit[body.role ?? user.role ?? EUserRole.USER],
       data,
     });
   },
 
-  async getAllUser({
-    page,
-    limit,
-    search,
-    omit,
-    ...where
-  }: Prisma.UserWhereInput & TList & { omit: Prisma.UserOmit }) {
-    where ??= {} as any;
+  /**
+   * Get all users with pagination and search
+   */
+  async getAllUser({ page, limit, search, role }: TList & { role: EUserRole }) {
+    const where: Prisma.UserWhereInput = { role };
 
     if (search)
       where.OR = searchFields.map(field => ({
@@ -122,7 +143,7 @@ export const UserServices = {
 
     const users = await prisma.user.findMany({
       where,
-      omit,
+      omit: userSelfOmit[role],
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -171,7 +192,7 @@ export const UserServices = {
   async deleteAccount(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    if (user?.avatar) await deleteFile(user.avatar);
+    if (user?.avatar) await deleteFilesQueue.add([user.avatar]);
 
     return prisma.user.delete({ where: { id: userId } });
   },
