@@ -11,6 +11,7 @@ import capture from '@/middlewares/capture';
 import catchAsync from '@/middlewares/catchAsync';
 import { SubscriptionRoutes } from '@/modules/subscription/Subscription.route';
 import { TransactionRoutes } from '@/modules/transaction/Transaction.route';
+import { authRateLimiter } from '@/modules/auth/Auth.utils';
 
 const appRouter = Router();
 
@@ -40,7 +41,7 @@ appRouter.post(
 
 export default injectRoutes(appRouter, {
   // no auth required
-  '/auth': [AuthRoutes.free],
+  '/auth': [authRateLimiter, AuthRoutes.free],
   '/payments': [PaymentRoutes.free],
   '/subscriptions': [SubscriptionRoutes.free],
 

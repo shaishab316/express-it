@@ -5,25 +5,17 @@ import { UserControllers } from '../user/User.controller';
 import { UserValidations } from '../user/User.validation';
 import purifyRequest from '@/middlewares/purifyRequest';
 import auth from '@/middlewares/auth';
-import {
-  otpVerifyRateLimiter,
-  forgotPasswordRateLimiter,
-  loginRateLimiter,
-  registerRateLimiter,
-} from './Auth.utils';
 
 const free = Router();
 
 free.post(
   '/register',
-  registerRateLimiter,
   purifyRequest(UserValidations.userRegister),
   UserControllers.register,
 );
 
 free.post(
   '/account-verify',
-  otpVerifyRateLimiter,
   purifyRequest(AuthValidations.accountVerify),
   AuthControllers.accountVerify,
 );
@@ -31,7 +23,6 @@ free.post(
 {
   free.post(
     '/login',
-    loginRateLimiter,
     purifyRequest(AuthValidations.login),
     AuthControllers.login,
   );
@@ -57,14 +48,12 @@ free.post(
 
 free.post(
   '/forgot-password',
-  forgotPasswordRateLimiter,
   purifyRequest(AuthValidations.otpSend),
   AuthControllers.forgotPassword,
 );
 
 free.post(
   '/forgot-password/otp-verify',
-  otpVerifyRateLimiter,
   purifyRequest(AuthValidations.accountVerify),
   AuthControllers.forgotPasswordOtpVerify,
 );
