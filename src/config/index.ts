@@ -42,7 +42,7 @@ const port = Number(
  */
 const config = {
   server: {
-    node_env: env<string>('node env', node_env, {
+    node_env: env('node env', node_env, {
       up: 'Server info - start',
       regex: '^(development|production)$',
     }),
