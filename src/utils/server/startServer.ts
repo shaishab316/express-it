@@ -56,7 +56,7 @@ function closeServer(isError: boolean) {
   (signal, idx) => process.once(signal, closeServer(idx > 1)),
 );
 
-const { port, name } = config.server;
+const { port, name, host } = config.server;
 
 /**
  * Starts the server
@@ -70,11 +70,11 @@ export default async function startServer() {
     server.addPlugins(await connectDB());
 
     spinner.text = chalk.yellow(`Listening on port ${port}...`);
-    await new Promise<void>(done => server.listen(port, '0.0.0.0', done));
+    await new Promise<void>(done => server.listen(port, host, done));
     const endTime = performance.now();
     spinner.succeed(
       chalk.green(
-        `${name} is running ${chalk.blue.underline(`http://localhost:${port}`)}, ${chalk.gray(`time: ${endTime - startTime}ms`)}`,
+        `${name} is running ${chalk.blue.underline(`http://${host}:${port}`)}, ${chalk.gray(`time: ${endTime - startTime}ms`)}`,
       ),
     );
 

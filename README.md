@@ -27,7 +27,8 @@
 git clone https://github.com/shaishabcoding/express-it.git
 cd express-it
 npm install
-npm run dev  # .env auto-generates on first run!
+npm run env-seed # Optional: generates .env with defaults
+npm run dev
 ```
 
 ---
@@ -41,10 +42,6 @@ npm run dev  # .env auto-generates on first run!
 - **Real-time**: `socket.io`
 - **Logs**: `winston` + `morgan`
 - **Dev Tools**: `nodemon`, `eslint`
-
-### 📂 **Auto-Generated Files**
-
-- `.env` (created with defaults on first run)
 
 ---
 
