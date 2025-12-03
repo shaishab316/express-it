@@ -19,9 +19,6 @@ const server_name =
   capitalize(path.basename(process.cwd())) ??
   'Server';
 
-const admin_email =
-  process.env.ADMIN_EMAIL ?? `admin@${server_name.toLowerCase()}.com`;
-
 const user_email =
   process.env.EMAIL_USER ?? `${server_name.toLowerCase()}@gmail.com`;
 
@@ -42,12 +39,15 @@ const port = Number(
  */
 const config = {
   server: {
-    node_env: env<string>('node env', node_env, {
+    node_env: env('node env', node_env, {
       up: 'Server info - start',
       regex: '^(development|production)$',
     }),
     allowed_origins: env('allowed origins', ['*'], {
       regex: '^\\*$|^$|^(https?:\\/\\/[^,\\s]+)(,https?:\\/\\/[^,\\s]+)*$',
+    }),
+    host: env('host', '0.0.0.0', {
+      regex: '^(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|localhost)$',
     }),
     port: env('port', port, {
       regex: '^\\d{4,5}$',
@@ -65,9 +65,6 @@ const config = {
     }),
     default_avatar: env('default avatar', '/images/placeholder.png', {
       regex: '^\\/.*\\.(png|jpg|jpeg|svg)$',
-    }),
-    db_name: env('db name', db_name, {
-      regex: '^\\w[\\w\\s-]{1,50}$',
     }),
     mock_mail: env('mock mail', true, {
       regex: '^(true|false)$',
@@ -165,20 +162,6 @@ const config = {
     support: env('support email', support_email, {
       regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
       down: 'Email info - end',
-    }),
-  },
-
-  admin: {
-    name: env('admin name', 'Mr. Admin', {
-      regex: '^.{2,100}$',
-      up: 'Admin info - start',
-    }),
-    email: env('admin email', admin_email, {
-      regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
-    }),
-    password: env('admin password', genSecret(4), {
-      regex: '^.{6,32}$',
-      down: 'Admin info - end',
     }),
   },
 
