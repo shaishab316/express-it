@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { createServer } from 'http';
 import app from '@/app';
 import config from '@/config';
-import { errorLogger } from '../logger';
+import { logger } from '../logger';
 import { connectDB } from '../db';
 import { TCleanupFunction, TServer } from '@/types/utils.types';
 import ora from 'ora';
@@ -39,7 +39,7 @@ function closeServer(isError: boolean) {
     await Promise.allSettled(cleanups.map(cleanup => cleanup()));
     server?.close(() => {
       if (isError && error) {
-        errorLogger.error(chalk.red('❌ Server failed:'), error);
+        logger.error(chalk.red('❌ Server failed:') + error);
         process.exit(1);
       } else {
         console.log(chalk.cyan('Server closed gracefully'));

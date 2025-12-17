@@ -14,7 +14,7 @@ import { StatusCodes } from 'http-status-codes';
 import config from '@/config';
 import emailQueue from '@/utils/mq/emailQueue';
 import { emailTemplate } from '@/templates/emailTemplate';
-import { errorLogger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 import ms from 'ms';
 import { Response } from 'express';
 import { generateOTP, validateOTP } from '@/utils/crypto/otp';
@@ -79,7 +79,7 @@ export const AuthServices = {
           });
       } catch (error) {
         if (error instanceof Error) {
-          errorLogger.error(error.message);
+          logger.error(error.message);
         }
       }
     }

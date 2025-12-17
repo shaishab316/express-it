@@ -4,7 +4,7 @@ import type { TServeResponse } from '@/utils/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
 import { formatError } from '@/middlewares/globalErrorHandler';
 import chalk from 'chalk';
-import { errorLogger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 
 /**
  * Catch Async Socket Handler
@@ -31,7 +31,7 @@ export const catchAsyncSocket = <S extends z.ZodType>(
       });
     } catch (error: any) {
       Object.assign(response, formatError(error));
-      errorLogger.error(chalk.red(response.message));
+      logger.error(chalk.red(response.message));
     } finally {
       ack?.(response);
     }

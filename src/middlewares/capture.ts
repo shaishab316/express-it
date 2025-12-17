@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import multer, { FileFilterCallback, StorageEngine } from 'multer';
 import ServerError from '@/errors/ServerError';
 import catchAsync from './catchAsync';
-import { errorLogger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 import chalk from 'chalk';
 import { json } from '@/utils/transform/json';
 import path from 'path';
@@ -59,14 +59,14 @@ const ensureUploadDirs = async (): Promise<void> => {
       ),
     );
   } catch (error) {
-    errorLogger.error('Failed to create upload directories:', error);
+    logger.error('Failed to create upload directories:' + error);
     throw error;
   }
 };
 
 // Initialize directories on module load
 ensureUploadDirs().catch(err =>
-  errorLogger.error('Upload directory initialization failed:', err),
+  logger.error('Upload directory initialization failed:' + err),
 );
 
 /**
@@ -121,7 +121,7 @@ const capture = (fields: UploadFields) =>
           Object.assign(req.body, json(req.body.data));
           delete req.body.data;
         } catch (err) {
-          errorLogger.error('Failed to parse JSON data:', err);
+          logger.error('Failed to parse JSON data:' + err);
         }
       }
 
@@ -170,7 +170,7 @@ export const deleteFile = async (filename: string): Promise<boolean> => {
     spinner.fail(chalk.red(`File '${sanitizedFilename}' not found`));
     return false;
   } catch (error: any) {
-    errorLogger.error(`Failed to delete file '${sanitizedFilename}':`, error);
+    logger.error(`Failed to delete file '${sanitizedFilename}':` + error);
     return false;
   }
 };
@@ -352,7 +352,10 @@ export async function downloadFile({
 
     return `/${fileType}/${fileName}`;
   } catch (error) {
-    spinner.fail(chalk.red(`Error downloading ${fileType}`));
-    errorLogger.error(error);
+    if (error instanceof Error) {
+      spinner.fail(chalk.red(`Error downloading ${fileType}`));
+      logger.error(error.message);
+    }
+    throw error;
   }
 }
