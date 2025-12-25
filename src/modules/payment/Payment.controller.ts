@@ -3,7 +3,7 @@ import config from '@/config';
 import catchAsync from '@/middlewares/catchAsync';
 import { stripe, stripWebhookEventMap } from './Payment.utils';
 import { StatusCodes } from 'http-status-codes';
-import { errorLogger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 import { TStripWebhookEvent } from './Payment.interface';
 import { prisma } from '@/utils/db';
 import { PaymentServices } from './Payment.service';
@@ -36,10 +36,10 @@ export const PaymentControllers = {
       res.json({ received: true });
     },
     (error, _req, _res, next) => {
-      errorLogger.error(
-        chalk.red('🚨 stripeWebhook ~~ '),
-        error.message,
-        JSON.stringify(error.stack, null, 2),
+      logger.error(
+        chalk.red('🚨 stripeWebhook ~~ ') +
+          error.message +
+          JSON.stringify(error.stack, null, 2),
       );
 
       next(error);

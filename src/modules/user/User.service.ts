@@ -12,7 +12,7 @@ import { StatusCodes } from 'http-status-codes';
 import { hashPassword } from '../auth/Auth.utils';
 import { generateOTP } from '@/utils/crypto/otp';
 import emailQueue from '@/utils/mq/emailQueue';
-import { errorLogger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 import { emailTemplate } from '@/templates/emailTemplate';
 import config from '@/config';
 import stripeAccountConnectQueue from '@/utils/mq/stripeAccountConnectQueue';
@@ -102,9 +102,7 @@ export const UserServices = {
     if (!user.stripe_account_id) {
       stripeAccountConnectQueue
         .add({ user_id: user.id })
-        .catch(err =>
-          errorLogger.error('Failed to queue stripe account:', err),
-        );
+        .catch(err => logger.error('Failed to queue stripe account:' + err));
     }
 
     // Send verification OTP email
@@ -124,9 +122,7 @@ export const UserServices = {
             template: 'account_verify',
           }),
         })
-        .catch(err =>
-          errorLogger.error('Failed to send verification email:', err),
-        );
+        .catch(err => logger.error('Failed to send verification email:' + err));
     }
 
     return {

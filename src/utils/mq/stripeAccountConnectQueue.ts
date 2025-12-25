@@ -3,7 +3,7 @@ import config from '@/config';
 import { prisma } from '../db';
 import chalk from 'chalk';
 import { stripe } from '@/modules/payment/Payment.utils';
-import { errorLogger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 import ora from 'ora';
 import { Stripe } from 'stripe';
 
@@ -52,9 +52,8 @@ stripeAccountConnectQueue.process(async ({ data }) => {
     } catch (error) {
       spinner.fail(`Failed creating Stripe account for ${user.email}`);
 
-      errorLogger.error(
-        chalk.red(`Error creating Stripe account for ${user.email}`),
-        error,
+      logger.error(
+        chalk.red(`Error creating Stripe account for ${user.email}`) + error,
       );
     }
   }

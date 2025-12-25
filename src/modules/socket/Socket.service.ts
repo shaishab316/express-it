@@ -4,7 +4,7 @@ import config from '@/config';
 import { SocketRoutes } from './Socket.route';
 import auth from './Socket.middleware';
 import { TAuthenticatedSocket } from './Socket.interface';
-import { errorLogger, logger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 import chalk from 'chalk';
 import ora from 'ora';
 import { TServer } from '@/types/utils.types';
@@ -83,13 +83,16 @@ export const SocketServices = {
         });
 
         // Event: error
-        socket.on('error', errorLogger.error);
+        socket.on('error', logger.error);
 
         // Call module-specific handler
         try {
           handler({ io: nsp, socket });
         } catch (err) {
-          logger.error(`Namespace "${namespace}" handler error:`, err);
+          if (err instanceof Error) {
+            logger.error(`Namespace "${namespace}" handler error:` + err);
+          }
+          throw err;
         }
       });
     });

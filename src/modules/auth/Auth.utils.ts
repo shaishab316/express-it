@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import config from '@/config';
 import ServerError from '@/errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import { errorLogger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 import chalk from 'chalk';
 import bcrypt from 'bcryptjs';
 import { enum_decode } from '@/utils/transform/enum';
@@ -25,7 +25,7 @@ export const encodeToken = (payload: TTokenPayload, token_type: TToken) => {
       expiresIn: config.jwt[token_type].expire_in,
     });
   } catch (error: any) {
-    errorLogger.error(chalk.red('🔑 Failed to create token'), error);
+    logger.error(chalk.red('🔑 Failed to create token') + error.message);
     throw new ServerError(
       StatusCodes.INTERNAL_SERVER_ERROR,
       'Failed to create token ::=> ' + error.message,

@@ -6,7 +6,7 @@ import { ZodError } from 'zod';
 import config from '@/config';
 import ServerError from '@/errors/ServerError';
 import handleZodError from '@/errors/handleZodError';
-import { errorLogger } from '@/utils/logger';
+import { logger } from '@/utils/logger';
 import type { TErrorHandler, TErrorMessage } from '@/types/errors';
 import multer from 'multer';
 import handleMulterError from '@/errors/handleMulterError';
@@ -36,7 +36,7 @@ const globalErrorHandler: ErrorRequestHandler = async (error, req, res, _) => {
 
   if (config.server.isDevelopment)
     console.log(chalk.red('🚨 globalErrorHandler ~~ '), error);
-  else errorLogger.error(chalk.red('🚨 globalErrorHandler ~~ '), error);
+  else logger.error(chalk.red('🚨 globalErrorHandler ~~ ') + error);
 
   const { statusCode, message, errorMessages } = formatError(error);
 

@@ -36,7 +36,7 @@ const fileFormat = combine(
 /**
  * Logger for info messages
  */
-export const logger = createLogger({
+const successLogger = createLogger({
   level: 'info',
   transports: [
     new transports.Console({ format: consoleFormat }),
@@ -54,7 +54,7 @@ export const logger = createLogger({
 /**
  * Logger for error messages
  */
-export const errorLogger = createLogger({
+const errorLogger = createLogger({
   level: 'error',
   transports: [
     new transports.Console({ format: consoleFormat }),
@@ -68,3 +68,8 @@ export const errorLogger = createLogger({
     }),
   ],
 });
+
+export const logger = {
+  info: (message: any) => successLogger.info(message.toString().trim()),
+  error: (message: any) => errorLogger.error(message.toString().trim()),
+};
