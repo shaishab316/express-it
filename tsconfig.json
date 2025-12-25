@@ -1,5 +1,5 @@
 {
-  "include": ["src", "prisma"],
+  "include": ["src", "prisma", "test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "target": "ES2023",

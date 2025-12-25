@@ -22,7 +22,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@db': path.resolve(__dirname, './src/utils/db'),
+      '@db': path.resolve(__dirname, './src/utils/db/index.ts'),
     },
   },
 });
