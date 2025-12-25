@@ -10,3 +10,7 @@
 /.vscode/settings.json
 api*.json
 .env
+
+#test
+/coverage
+/tests/__snapshots__
