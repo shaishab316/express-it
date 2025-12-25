@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { exists } from '@/utils/db/exists';
+import { exists } from '@db';
 import { capitalize } from '@/utils/transform/capitalize';
 import { TModels } from '@/types/db';
 

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import Stripe from 'stripe';
 import config from '@/config';
-import { prisma } from '@/utils/db';
+import { prisma } from '@db';
 import { PaymentServices } from './Payment.service';
 import { subscriptionIntervalMap } from '../subscription/Subscription.constant';
 import dayjs from 'dayjs';

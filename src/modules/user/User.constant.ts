@@ -1,4 +1,4 @@
-import { EUserRole, Prisma, User as TUser } from '@/utils/db';
+import { EUserRole, Prisma, User as TUser } from '@db';
 
 /**
  * Use in user search functionality

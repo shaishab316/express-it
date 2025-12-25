@@ -16,6 +16,7 @@ await build({
   minify: true,
   alias: {
     '@': 'src',
+    '@db': 'src/utils/db',
   },
   plugins: [nodeExternalsPlugin()],
 });

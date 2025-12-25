@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import config from '@/config';
-import { EUserRole } from 'prisma/client/enums';
+import { EUserRole } from '@db';
 
 export const AuthValidations = {
   login: z.object({

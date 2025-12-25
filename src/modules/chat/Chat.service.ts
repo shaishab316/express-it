@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import ServerError from '@/errors/ServerError';
-import { Prisma, Chat as TChat, prisma } from '@/utils/db';
+import { Prisma, Chat as TChat, prisma } from '@db';
 import { TDeleteChatArgs, TGetInboxArgs, TNewChatArgs } from './Chat.interface';
 import { TPagination } from '@/utils/server/serveResponse';
 

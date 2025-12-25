@@ -10,13 +10,13 @@ import {
   TSubscriptionEdit,
   TUserSubscriptionMetadata,
 } from './Subscription.interface';
-import { Prisma, User as TUser } from '@/utils/db';
+import { Prisma, User as TUser } from '@db';
 import {
   subscriptionSearchableFields as searchableFields,
   subscriptionIntervalMap,
   subscriptionOmit,
 } from './Subscription.constant';
-import { prisma } from '@/utils/db';
+import { prisma } from '@db';
 import { logger } from '@/utils/logger';
 import env from '@/utils/env';
 import { TPagination } from '@/utils/server/serveResponse';

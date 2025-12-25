@@ -8,7 +8,7 @@ import type {
   TUserLogin,
 } from './Auth.interface';
 import { encodeToken, hashPassword, verifyPassword } from './Auth.utils';
-import { prisma, type User as TUser } from '@/utils/db';
+import { prisma, type User as TUser } from '@db';
 import ServerError from '@/errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import config from '@/config';

@@ -1,5 +1,5 @@
 import z from 'zod';
-import { exists } from '@/utils/db/exists';
+import { exists } from '@db';
 
 /**
  * Validation for chat

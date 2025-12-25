@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import config from '@/config';
 export * from '@/../prisma/client/client.js';
+export * from './exists.js';
 
 /**
  * Prisma Client instance
