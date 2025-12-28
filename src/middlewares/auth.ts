@@ -15,7 +15,7 @@ const auth = ({
   validators?: ((user: TUser) => void)[];
 } = {}) =>
   catchAsync(async (req, _, next) => {
-    const token = req.headers.authorization; //Todo: || req.cookies[token_type];
+    const token = req.headers?.authorization; //Todo: || req.cookies[token_type]; if using cookies handle csrf tokens
 
     const id = decodeToken(token, token_type)?.uid;
 
