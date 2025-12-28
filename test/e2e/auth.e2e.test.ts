@@ -10,7 +10,7 @@ const _user = {
   password: faker.internet.password({ length: 8 }),
 };
 
-describe('Auth E2E Tests', () => {
+describe.sequential('Auth E2E Tests', () => {
   it('POST /api/v1/auth/register - should register a new user', async () => {
     const payload = {
       email: _user.email,
@@ -49,6 +49,46 @@ describe('Auth E2E Tests', () => {
     };
 
     expect(response.status).toBe(201);
+    expect(response.body).toMatchObject(expected);
+  });
+
+  it('POST /api/v1/auth/login - should login an existing user', async () => {
+    const payload = {
+      email: _user.email,
+      password: _user.password,
+    };
+
+    const response = await request(app)
+      .post('/api/v1/auth/login')
+      .send(payload);
+
+    const expected = {
+      success: true,
+      statusCode: 200,
+      message: 'Login successfully!',
+      data: {
+        access_token: expect.any(String),
+        refresh_token: expect.any(String),
+        user: {
+          id: expect.stringMatching(/^us-\w+$/),
+          created_at: expect.any(String),
+          updated_at: expect.any(String),
+          role: 'USER',
+          email: payload.email,
+          is_verified: false,
+          is_active: false,
+          is_admin: false,
+          avatar: '/images/placeholder.png',
+          name: 'Unknown User',
+          gender: 'OTHER',
+          balance: 0,
+          is_stripe_connected: false,
+          subscription_name: null,
+        },
+      },
+    };
+
+    expect(response.status).toBe(200);
     expect(response.body).toMatchObject(expected);
   });
 });

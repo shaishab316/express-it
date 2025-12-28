@@ -47,7 +47,7 @@ const auth = ({
 /**
  * Common validator function
  */
-function commonValidator({ is_admin, is_verified, is_active }: TUser) {
+export function commonValidator({ is_admin, is_verified, is_active }: TUser) {
   if (is_admin) return;
 
   if (!is_verified) {
