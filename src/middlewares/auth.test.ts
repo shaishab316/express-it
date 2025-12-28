@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { commonValidator } from './auth';
+import { commonValidator, paymentValidator } from './auth';
 
 describe('auth middleware', () => {
   describe('commonValidator', () => {
@@ -28,16 +28,30 @@ describe('auth middleware', () => {
     });
 
     it('should throw error for inactive users', () => {
-      try {
+      expect(() => {
         commonValidator({
           is_admin: false,
           is_verified: true,
-          is_active: false, // inactive
+          is_active: false,
         } as any);
-        throw new Error('inactive users can pass validation');
+      }).toThrow('Your account is not active');
+    });
+  });
+
+  describe('paymentValidator', () => {
+    it('should throw error for users with no subscription', () => {
+      try {
+        paymentValidator({
+          role: 'USER',
+          subscription_name: null, // no subscription
+          subscription_expires_at: null,
+        } as any);
+        throw new Error('users with no subscription can pass validation');
       } catch (error) {
         if (error instanceof Error) {
-          expect(error.message).toBe('Your account is not active');
+          expect(error.message).toBe(
+            'Your user subscription has expired. Please renew to continue accessing this feature.',
+          );
         }
       }
     });

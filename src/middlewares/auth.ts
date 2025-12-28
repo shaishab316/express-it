@@ -63,7 +63,7 @@ export function commonValidator({ is_admin, is_verified, is_active }: TUser) {
 /**
  * Payment validator function
  */
-function paymentValidator({
+export function paymentValidator({
   role,
   subscription_name,
   subscription_expires_at,
