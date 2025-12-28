@@ -43,20 +43,16 @@ describe('auth middleware', () => {
 
   describe('paymentValidator', () => {
     it('should throw error for users with no subscription', () => {
-      try {
+      expect(() => {
         paymentValidator({
           role: 'USER',
           subscription_name: null, // no subscription
+
           subscription_expires_at: null,
         } as any);
-        throw new Error('users with no subscription can pass validation');
-      } catch (error) {
-        if (error instanceof Error) {
-          expect(error.message).toBe(
-            'Your user subscription has expired. Please renew to continue accessing this feature.',
-          );
-        }
-      }
+      }).toThrow(
+        'Your user subscription has expired. Please renew to continue accessing this feature.',
+      );
     });
   });
 
