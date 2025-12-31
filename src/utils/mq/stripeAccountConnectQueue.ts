@@ -8,7 +8,7 @@ import ora from 'ora';
 import { Stripe } from 'stripe';
 
 const stripeAccountConnectQueue = new Queue<{ user_id: string }>(
-  'stripe-account-connect',
+  `${config.server.name}::stripe-account-connect`,
   config.url.redis,
 );
 
