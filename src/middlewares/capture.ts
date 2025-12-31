@@ -100,7 +100,7 @@ const capture = (fields: UploadFields) =>
 
           req.tempFiles.push(...uploadedFiles);
         } else {
-          req.body[field] = fields[field].default ?? null;
+          req.body[field] = fields[field].default;
         }
       }
 
@@ -112,7 +112,7 @@ const capture = (fields: UploadFields) =>
 
       // Set defaults on error
       for (const field of Object.keys(fields)) {
-        req.body[field] = fields[field].default ?? null;
+        req.body[field] = fields[field].default;
       }
     } finally {
       // Parse JSON data if exists
