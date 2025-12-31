@@ -39,10 +39,7 @@ const port = Number(
  */
 const config = {
   server: {
-    node_env: env('node env', node_env, {
-      up: 'Server info - start',
-      regex: '^(development|production)$',
-    }),
+    node_env: process.env.NODE_ENV ?? 'development',
     allowed_origins: env('allowed origins', ['*'], {
       regex: '^\\*$|^$|^(https?:\\/\\/[^,\\s]+)(,https?:\\/\\/[^,\\s]+)*$',
     }),
@@ -75,7 +72,7 @@ const config = {
   url: {
     database: env(
       'database url',
-      `postgresql://admin:admin@localhost:5432/${db_name}?schema=public`,
+      `postgresql://admin:admin@localhost:5432/${db_name}`,
       {
         up: 'Database info - start',
         regex: '^postgresql://.*',

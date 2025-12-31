@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
 import config from '@/config';
-import { prisma } from '@/utils/db';
+import { prisma } from '@db';
 import { hashPassword } from '../auth/Auth.utils';
 import { UserServices } from '../user/User.service';
 

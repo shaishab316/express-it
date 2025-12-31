@@ -2,7 +2,7 @@
 *.keys
 
 /dist
-/prisma
+/prisma/client
 /tmp
 
 /logs
@@ -10,3 +10,7 @@
 /.vscode/settings.json
 api*.json
 .env
+
+#test
+/coverage
+/tests/__snapshots__

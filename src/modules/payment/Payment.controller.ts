@@ -5,7 +5,7 @@ import { stripe, stripWebhookEventMap } from './Payment.utils';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '@/utils/logger';
 import { TStripWebhookEvent } from './Payment.interface';
-import { prisma } from '@/utils/db';
+import { prisma } from '@db';
 import { PaymentServices } from './Payment.service';
 
 /**

@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import ServerError from '@/errors/ServerError';
-import { type Prisma, prisma } from '@/utils/db';
+import { type Prisma, prisma } from '@db';
 import type {
   TCreateMessageArgs,
   TDeleteMessageArgs,

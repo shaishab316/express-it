@@ -1,11 +1,8 @@
 import { z } from 'zod';
-import {
-  ESubscriptionInterval,
-  Subscription as TSubscription,
-} from '@/utils/db';
+import { ESubscriptionInterval, Subscription as TSubscription } from '@db';
 import { enum_encode } from '@/utils/transform/enum';
 import { TModelZod } from '@/types/zod';
-import { exists } from '@/utils/db/exists';
+import { exists } from '@db';
 
 export const SubscriptionValidations = {
   createSubscription: z.object({

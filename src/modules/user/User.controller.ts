@@ -2,7 +2,7 @@ import { UserServices } from './User.service';
 import catchAsync from '@/middlewares/catchAsync';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
-import { prisma, User as TUser } from '@/utils/db';
+import { prisma, User as TUser } from '@db';
 import { enum_decode } from '@/utils/transform/enum';
 import { capitalize } from '@/utils/transform/capitalize';
 import { stripe } from '../payment/Payment.utils';

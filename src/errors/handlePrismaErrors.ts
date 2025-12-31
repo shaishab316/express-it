@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import { Prisma } from '@/utils/db';
+import { Prisma } from '@db';
 import {
   createErrorMessage,
   defaultError,

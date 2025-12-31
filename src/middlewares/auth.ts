@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import ServerError from '@/errors/ServerError.js';
 import { decodeToken } from '@/modules/auth/Auth.utils';
 import catchAsync from './catchAsync';
-import { EUserRole, prisma, User as TUser } from '@/utils/db';
+import { EUserRole, prisma, User as TUser } from '@db';
 import config from '@/config';
 import { TToken } from '@/types/auth.types';
 
@@ -15,7 +15,7 @@ const auth = ({
   validators?: ((user: TUser) => void)[];
 } = {}) =>
   catchAsync(async (req, _, next) => {
-    const token = req.headers.authorization; //Todo: || req.cookies[token_type];
+    const token = req.headers?.authorization; //Todo: || req.cookies[token_type]; if using cookies handle csrf tokens
 
     const id = decodeToken(token, token_type)?.uid;
 
@@ -47,7 +47,7 @@ const auth = ({
 /**
  * Common validator function
  */
-function commonValidator({ is_admin, is_verified, is_active }: TUser) {
+export function commonValidator({ is_admin, is_verified, is_active }: TUser) {
   if (is_admin) return;
 
   if (!is_verified) {
@@ -63,7 +63,7 @@ function commonValidator({ is_admin, is_verified, is_active }: TUser) {
 /**
  * Payment validator function
  */
-function paymentValidator({
+export function paymentValidator({
   role,
   subscription_name,
   subscription_expires_at,

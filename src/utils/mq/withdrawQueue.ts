@@ -1,7 +1,7 @@
 import { TWithdrawArgs } from '@/modules/payment/Payment.interface';
 import config from '@/config';
 import Queue from 'bull';
-import { prisma } from '@/utils/db';
+import { prisma } from '@db';
 import ora from 'ora';
 import chalk from 'chalk';
 import { stripe } from '@/modules/payment/Payment.utils';

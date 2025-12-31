@@ -16,8 +16,10 @@ await build({
   minify: true,
   alias: {
     '@': 'src',
+    '@db': 'src/utils/db',
   },
   plugins: [nodeExternalsPlugin()],
+  external: ['*.test.ts', '*.spec.ts', '*.e2e.test.ts'], //? Exclude test files
 });
 
 const endTime = performance.now();

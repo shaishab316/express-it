@@ -3,7 +3,7 @@ import {
   userSearchableFields as searchFields,
   userSelfOmit,
 } from './User.constant';
-import { EUserRole, Prisma, prisma, User as TUser } from '@/utils/db';
+import { EUserRole, Prisma, prisma, User as TUser } from '@db';
 import { TPagination } from '@/utils/server/serveResponse';
 import deleteFilesQueue from '@/utils/mq/deleteFilesQueue';
 import type { TUserEdit } from './User.interface';

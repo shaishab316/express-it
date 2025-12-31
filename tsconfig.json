@@ -1,5 +1,5 @@
 {
-  "include": ["src", "prisma"],
+  "include": ["src", "prisma", "test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "target": "ES2023",
@@ -14,7 +14,8 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@db": ["src/utils/db"]
     }
   }
 }
