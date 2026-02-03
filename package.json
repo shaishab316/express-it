@@ -85,7 +85,7 @@
     "supertest": "^7.1.4",
     "table": "^6.9.0",
     "tsx": "^4.20.6",
-    "typescript": "^5.5.4",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.16"
   },
   "dependencies": {
